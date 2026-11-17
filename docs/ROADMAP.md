@@ -1,13 +1,15 @@
 # Roadmap
 
 ## Fase 0 — Fundação
-- [ ] Instalar Ubuntu 24.04 no WSL2.
-- [ ] Integrar Ubuntu ao Docker Desktop.
-- [ ] Criar estrutura inicial do monorepo.
-- [ ] Definir versões Node.js, Java e ferramentas.
-- [ ] Configurar lint, typecheck e testes.
+- [x] Instalar Ubuntu 26.04.1 no WSL2.
+- [x] Integrar Ubuntu ao Docker Desktop.
+- [x] Instalar Node.js LTS, pnpm e JDK no ambiente Linux.
+- [x] Criar estrutura inicial do monorepo.
+- [ ] Gerar e versionar pnpm-lock.yaml após a primeira instalação.
+- [ ] Configurar e validar lint, typecheck, testes e build localmente.
 
 ## Fase 1 — Runtime Minecraft
+- [ ] Definir a versão-alvo do Minecraft e confirmar os requisitos de Java/Paper.
 - [ ] Subir Paper localmente.
 - [ ] Aceitar EULA e configurar server.properties conscientemente.
 - [ ] Instalar/configurar GeyserMC e Floodgate.
