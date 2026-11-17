@@ -1,54 +1,56 @@
-# Ignorar arquivos de compilação
-*.exe
-*.dll
-*.pdb
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
 
-# Ignorar arquivos gerados por IDEs
+# Node / pnpm
+node_modules/
+.pnpm-store/
+.npm/
+*.tsbuildinfo
+
+# Build output
+dist/
+build/
+.next/
+out/
+coverage/
+
+# IDE and OS
 .vscode/
 .idea/
+.DS_Store
+Thumbs.db
 
-# Ignorar arquivos de configuração do servidor
-bukkit.yml
-spigot.yml
-paper.yml
-
-# Ignorar backups de mundo
+# Minecraft runtime data (never commit player/world data)
+world/
+world_nether/
+world_the_end/
 world_backup/
-
-# Ignorar logs do servidor
+backups/
 logs/
-
-# Ignorar cache de plugins
+cache/
 plugins/cache/
-
-# Ignorar arquivos temporários
-*.tmp
-
-# Ignorar arquivos de dados
-data/
-
-# Ignorar arquivos de backup
+*.log
 *.bak
 *.bak.*
 *.old
 
-# Ignorar arquivos de logs
-*.log
+# Local server configuration/data
+bukkit.yml
+spigot.yml
+paper.yml
+data/
+BDS-Server/
 
-# Ignorar arquivos de cache
-cache/
+# Temporary files
+*.tmp
 
-# Ignorar diretórios de construção
-build/
-dist/
-
-# Ignorar arquivos de dependências
-node_modules/
-vendor/
-
-# Ignorar arquivos específicos
+# Historical ignore entries
 arquivo1.txt
 arquivo2.png
-BDS-Server/
 testehtml.html
-```
