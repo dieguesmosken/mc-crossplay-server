@@ -20,12 +20,13 @@ Não expor Docker socket ou API privilegiada diretamente à internet. A API púb
 OFFLINE → START_REQUESTED → STARTING → LOADING_WORLD → VERIFYING_CONNECTION → ONLINE → IDLE → STOPPING → OFFLINE.
 Falhas levam a ERROR, com timeout, logs e nova tentativa controlada.
 
-## Ambiente local
+## Ambiente local validado
 - Windows 11 como host.
-- WSL2 Ubuntu 24.04 LTS para ferramentas e código.
-- Docker Desktop como único Docker Engine.
-- Preferir guardar código no filesystem Linux (ex.: ~/projects/...) para I/O.
-- Habilitar WSL Integration no Docker Desktop; não instalar Docker Engine duplicado no Ubuntu.
+- WSL2 com Ubuntu 26.04.1 LTS (distribuição: Ubuntu-26.04).
+- Docker Desktop como único Docker Engine, com integração WSL habilitada.
+- Código no filesystem Linux (ex.: ~/projects/...) para melhor I/O.
+- systemd habilitado no WSL.
+- Não instalar Docker Engine duplicado no Ubuntu.
 
 ## Rede
 - Java: TCP (porta configurável; padrão comum 25565).
