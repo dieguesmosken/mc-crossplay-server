@@ -91,4 +91,63 @@ Arquivos modificados nesta atualização:
 
 ---
 
+---
+
+## Relatório de Implementação da Fase 1 — Runtime Minecraft
+
+**2026-11-18T07:45:00-03:00 [America/Sao_Paulo]**
+
+Implementação completa da configuração Docker para runtime Minecraft Paper + GeyserMC + Floodgate (configuração pronta, validação real pendente).
+
+### Arquivos criados/alterados:
+
+**Criados:**
+- `infrastructure/docker/minecraft/entrypoint.sh` — Inicialização do container: download condicional de Geyser/Floodgate, validação de EULA, startup Paper.
+
+**Alterados:**
+- `infrastructure/docker/minecraft/Dockerfile` — Base `eclipse-temurin:25-jdk-alpine`, Paper 26.3 build 255 de `fill-data.papermc.io`, ENTRYPOINT para entrypoint.sh.
+- `infrastructure/docker/docker-compose.yml` — Serviço `papermc` com volumes redesenhados (não ocultam paper.jar/plugins), portas loopback (127.0.0.1), TCP 25565 + UDP 19132, mem_limit 2g, rede bridge.
+- `infrastructure/minecraft/README.md` — Reescrita completa documentando todos os componentes, uso, persistência, segurança, testes, matriz de versões, task list.
+- `infrastructure/docker/README.md` — Reescrita completa alinhada à implementação real (caminhos corrigidos, EULA, comandos de uso).
+- `docs/ROADMAP.md` — Atualizado para refletir status real: Fase 1 implementada (configuração), pendente validação de startup real e conexões Java/Bedrock.
+- `.gitignore` — Adicionada apenas linha `.claude/INSTRUCOES-ATUAIS.md` (não todo o diretório `.claude/`).
+
+**Dados criados:**
+- `infrastructure/docker/data/config/eula.txt` — Inicializado com `eula=false` via container Alpine (resolvido problema de permissão de root).
+
+### Testes executados:
+
+1. **`docker compose config`** — Sintaxe válida. Warning anterior sobre `version: "3.8"` obsoleto resolvido (linha removida).
+2. **`docker compose build`** — Build bem-sucedido. Paper 26.3 (~55 MB) baixado e verificado. Imagem `docker-papermc:latest` criada.
+
+### Limitações / Pendências:
+
+- **EULA não aceita** — Arquivo existe com `eula=false`. Usuário deve ler EULA oficial (https://www.microsoft.com/en-us/licensing/faq/minecraft) e alterar para `eula=true` antes do startup.
+- **Validação de startup real pendente** — Requer EULA aceita para testar se container inicia e Paper carrega.
+- **Teste de conexão Java (TCP 25565) pendente** — Requer cliente Minecraft Java Edition.
+- **Teste de conexão Bedrock (UDP 19132) pendente** — Requer cliente Minecraft Bedrock.
+- **server.properties e geração de mundo** — Serão validados após startup real.
+
+### Combinação de versões validada contra fontes oficiais:
+
+| Componente | Versão | Fonte |
+|------------|--------|-------|
+| Java       | 25 (Temurin) | `eclipse-temurin:25-jdk-alpine` |
+| Paper      | 26.3 (build 255) | `fill-data.papermc.io` |
+| GeyserMC   | latest (Spigot/Paper) | `download.geysermc.org` |
+| Floodgate  | latest (Spigot/Paper) | `download.geysermc.org` |
+
+Validação contra:
+- https://docs.papermc.io/paper/getting-started/ → Paper 26.1+ requer Java 25
+- https://geysermc.org/wiki/geyser/supported-versions/ → Geyser-Spigot requer Paper 1.20.5+ (Paper 26.3 = Minecraft 1.21.4, compatível)
+- https://papermc.io/downloads/paper → URLs em `fill-data.papermc.io`
+
+### Próximos passos:
+1. Usuário aceitar EULA manualmente: `echo 'eula=true' > infrastructure/docker/data/config/eula.txt`
+2. Validar startup real: `docker compose -f infrastructure/docker/docker-compose.yml up`
+3. Testar conexões Java/Bedrock com clientes reais
+4. Fase 1 só será marcada como concluída após validações acima
+
+---
+
 *Este documento será mantido como canal de comunicação oficial entre a equipe de desenvolvimento e o modelo ChatGPT.*

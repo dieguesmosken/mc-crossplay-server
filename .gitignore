@@ -54,3 +54,7 @@ BDS-Server/
 arquivo1.txt
 arquivo2.png
 testehtml.html
+
+
+# ignore custom instructions files for claude code
+.claude/INSTRUCOES-ATUAIS.md

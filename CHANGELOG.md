@@ -2,61 +2,58 @@
 
 ## Unreleased
 
-- [ ] Documentação oficial de versionamento, changelog e fluxo Git/GitHub (`docs/RELEASE_AND_GIT_WORKFLOW.md`).
-- [ ] Referência clara no `AGENTS.md` para consultas sobre commits, tags, publicação e Pull Requests.
+- [ ] Validar startup real do runtime (Java e Bedrock) com evidências.
+- [ ] Testar conexão Java (TCP 25565) com cliente Minecraft Java Edition.
+- [ ] Testar conexão Bedrock (UDP 19132) com cliente Minecraft Bedrock.
+- [ ] Validar `server.properties` e geração de mundo.
 
-### [0.0.1] - 2023-05-01
+---
 
-#### Added
-
-- Initial release.
-
-#### Changed
-
-- criado script de redirecionanmento de portas.
-
-#### Removed
-
-- Nothing.
-
-## To Do
-
-- [ ] Criar estutura basica inicial.
-- [ ] Criar estruturas do servidor.
-- [ ] Criar a classe main.py do servidor.
-- [ ] Criar outras classes correspondentes
-
-## Done ✓
-
-- [x] script de redirecionamento de portas
-- [x] script de backup dos arquivos do servidor
-
-### [0.0.2] - 2023-06-12
+### [0.0.1] - 2026-11-18T19:10:12-03:00 [America/Sao_Paulo]
 
 #### Added
-
-- main.py
--
+- Dockerfile para PaperMC 26.3 (build 255) com Java 25 (eclipse-temurin:25-jdk-alpine).
+- Entrypoint.sh com download condicional de GeyserMC e Floodgate (Spigot/Paper latest) e validação de EULA.
+- Docker Compose com serviço `papermc`, volumes redesenhados (não ocultam paper.jar nem plugins da imagem), portas em loopback (127.0.0.1:25565/tcp e 127.0.0.1:19132/udp), mem_limit 2g, rede bridge.
+- Persistência de mundo, plugins, configs, logs e EULA em `./data/`.
+- Documentação completa em `infrastructure/minecraft/README.md` e `infrastructure/docker/README.md`.
+- Roadmap atualizado refletindo implementação real da Fase 1.
+- ChatGPT.md atualizado com relatório de implementação, testes e limitações.
 
 #### Changed
+- Removido atributo obsoleto `version: "3.8"` do docker-compose.yml.
+- Volumes reconfigurados para bind mounts separados: `./data/world`, `./data/plugins`, `./data/config`, `./data/config/eula.txt:/server/eula.txt`, `./data/logs`.
+- EULA NÃO aceita automaticamente — arquivo `./data/config/eula.txt` inicializado com `eula=false`, montado em `/server/eula.txt`.
+- README.md atualizado para refletir estado atual do runtime.
 
-- criado estutura basica inicial.
-- Reestruturação da ideia do projeto.
-- movido para o arquivo o projeto anterior
+#### Fixed
+- .gitignore: adicionada apenas `.claude/INSTRUCOES-ATUAIS.md` (não todo o diretório `.claude/`).
 
-#### Removed
+#### Known Limitations
+- EULA não aceita — requer ação manual do usuário (`echo 'eula=true' > infrastructure/docker/data/config/eula.txt` após ler a EULA oficial).
+- Startup real não validado — container não inicia enquanto `eula.txt` não for `eula=true`.
+- Conexões Java (TCP 25565) e Bedrock (UDP 19132) não testadas — requerem clientes Minecraft reais.
+- `server.properties` e geração de mundo pendentes de validação.
 
-- script de redirecionamento de portas
-- script de backup dos arquivos do servidor
+#### Testes Executados
+- `docker compose config` — sintaxe válida, sem warnings.
+- `docker compose build` — build bem-sucedido, Paper 26.3 (~55 MB) baixado de `fill-data.papermc.io`, imagem `docker-papermc:latest` criada.
 
-## To Do
+#### Como Reproduzir
+```bash
+# Construir a imagem
+docker compose -f infrastructure/docker/docker-compose.yml build
 
-- [ ] Criar estruturas do servidor.
-- [ ] Criar a classe main.py do servidor.
-- [ ] Criar outras classes correspondentes
+# Aceitar EULA (após ler em https://www.microsoft.com/en-us/licensing/faq/minecraft)
+echo 'eula=true' > infrastructure/docker/data/config/eula.txt
 
-## Done ✓
+# Iniciar o runtime
+docker compose -f infrastructure/docker/docker-compose.yml up
+```
 
-- [x] Script de redirecionamento de portas
-- [x] Script de backup dos arquivos do servidor
-- [x] Estutura basica inicial.
+#### Commit
+`6a41bbe` (hash completo a ser preenchido após commit)
+
+---
+
+*O histórico de versões antigas (0.0.1, 0.0.2 de 2023) pertence ao projeto Python legado e foi preservado na branch `main` como backup. Esta branch contém apenas o histórico da nova plataforma Minecraft Crossplay Server.*

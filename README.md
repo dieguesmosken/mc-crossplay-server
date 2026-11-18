@@ -2,7 +2,7 @@
 
 Plataforma para operar um servidor Minecraft Java e Bedrock com entrada orientada por um site, inicialização sob demanda, fila de espera e gerenciamento automatizado.
 
-> Estado atual: fundação do monorepo em preparação. O runtime Minecraft ainda não foi implementado.
+> Estado atual: a configuração inicial do runtime Minecraft existe em `infrastructure/docker/` (Dockerfile + docker-compose.yml). O startup real, as conexões Java/Bedrock e a combinação de versões (Paper/Geyser/Floodgate/Java) ainda precisam ser validados.
 
 ## Objetivo
 
