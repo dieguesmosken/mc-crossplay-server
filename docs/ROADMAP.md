@@ -55,4 +55,9 @@
 - [ ] Definir backup externo e recuperação.
 - [ ] Testar deploy em Linux sem dependência do PC pessoal.
 
+## Fase 7 — Interfaces e Dashboard (Futuro)
+
+- [ ] Protótipo do site público do servidor (Dark tech: preto, azul, verde; status, instruções Java/Bedrock).
+- [ ] Dashboard de acompanhamento do desenvolvimento (estático via HTML/CSS/JS + `project-status.json` + integração GitHub).
+
 Cada fase exige testes documentados e validação real antes de iniciar a seguinte.

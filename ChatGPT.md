@@ -1,3 +1,22 @@
+## Relatório de Decisões e Preferências do Projeto
+
+**2026-11-18T06:56:26-03:00 [America/Sao_Paulo]**
+
+Durante o desenvolvimento, foram registradas as seguintes decisões e preferências permanentes no sistema de instruções do projeto:
+
+- **Instruções persistentes:** Novas regras adicionadas ao `AGENTS.md` (Relatórios e Auditoria, Interfaces Futuras, Ideias Pausadas), preservando o conteúdo existente.
+- **Padrão de atualização do ChatGPT.md:** Timestamps em `America/Sao_Paulo` em cada relatório; preservar entradas anteriores; registrar commits, arquivos, testes, pendências e próximos passos.
+- **Site público do servidor:** Protótipo visual inicial (Dark tecnológico: preto, azul, verde) com identidade, status, conexão Java/Bedrock e área de novidades. Não antecipar API ou autenticação.
+- **Dashboard de desenvolvimento:** Página separada em HTML/CSS/JS com dados estruturados do repositório e GitHub (progresso por fases com pesos, roadmap, histórico, resultados de testes, bloqueios). Usará `project-status.json`.
+- **Ordem de execução:** Fase 1 (Runtime) → Auditoria do legado → Dashboard → Protótipo do site. Não remover arquivos antigos sem inspeção prévia.
+- **Ideia futura de IA colaborativa:** Registrada como pausada, sem implementação atual.
+
+Arquivos modificados nesta atualização:
+- `AGENTS.md` — Adicionadas seções de relatórios, interfaces futuras e ideias pausadas.
+- `docs/ROADMAP.md` — Adicionada Fase 7 (Interfaces e Dashboard).
+
+---
+
 3. **Limitações e Passos Futuros**
 **Status Atual (2026-11-18):**
 - Fase 1 (Runtime Minecraft) concluída: Dockerfile, docker-compose.yml e documentação de infraestrutura implementados e commitados.

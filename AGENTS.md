@@ -54,6 +54,22 @@ Construir uma plataforma local-first para operar um servidor Minecraft Paper com
 4. Informe arquivos alterados, comandos e resultados.
 5. Não faça deploy, exclusões remotas ou mudanças destrutivas sem autorização explícita.
 
+## Relatórios e Auditoria (ChatGPT)
+
+- Toda atualização em `ChatGPT.md` deve conter um timestamp no fuso `America/Sao_Paulo` (formato: `2026-11-18T06:50:00-03:00 [America/Sao_Paulo]`).
+- Registre commits, arquivos criados/alterados e resultados de testes.
+- A auditoria é independente; verifique commits e diffs antes de registrar conclusão.
+
+## Interfaces Futuras
+
+- **Site Público:** Protótipo visual (Dark tecnológico: preto, azul, verde). Status, conexão, novidades.
+- **Dashboard de Desenvolvimento:** Independente do site público. Acompanha roadmap, progresso, atividades e resultados de testes via `project-status.json`.
+- **Execução:** Manter prioridade na Fase 1 (Runtime) antes de iniciar interfaces.
+
+## Ideias Pausadas
+
+- **IA Colaborativa:** Estudo para múltiplos modelos atuando em paralelo (pausado).
+
 ## Critérios de conclusão
 
 Comportamento implementado, testes relevantes aprovados (ou limitações explicitadas), documentação atualizada e nenhum dado sensível no diff.
