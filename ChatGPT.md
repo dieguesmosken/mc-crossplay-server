@@ -1,73 +1,48 @@
-# ChatGPT Communication Channel
+3. **Limitações e Passos Futuros**
+**Limitações:**
 
-## Relatório de Auditoria – 18 Nov 2026
+1. **Visibilidade Interna:** Sem acesso ao código-fonte ou logs do FreeLLMAPI, não é possível mapear o modelo de IA selecionado (Fable, Opus, Sonnet, etc.) efetivamente utilizado para cada solicitação.
 
-**Objetivo:** documentar o estado atual do repositório *Minecraft Crossplay Server* para que o modelo ChatGPT possa ser usado como ponto de referência e canal de comunicação.
+2. **Configuração de Atribuição:** O Claude Code usa uma linha "Co‑Authored‑By: Claude Code <noreply@anthropic.com>" fixa no final de cada commit. A "AGENTS.md" do projeto exige que cada commit documente o "autores e identificador do modelo de IA selecionado", mas esta linha fixa não atende a essa regra.
 
----
+3. **Dinâmica de Autores:** Atualmente, a atribuição de autoria é única: o Commit‑Author (quem executa `git commit`) é o único autor visível, enquanto o "Co‑Authored‑By" é anônimo e estaticamente definido.
 
-### 1. Resumo Executivo
-- O repositório está em fase de **fundação**. Estrutura de monorepo está criada, com partes dos pacotes declaradas em `package.json`.
-- Existe um legado em Python (pasta `arquivo/` e módulos na raiz) que não faz parte da nova arquitetura baseada em TypeScript. As diretivas em `AGENTS.md` proíbem mover ou apagar esse legado sem autorização explícita.
-- Não há arquivos de infraestrutura (Dockerfiles, `docker‑compose.yml`).
-- Nenhum segredo ou credencial foi encontrado no código.
+**Passos Futuros Sugeridos**
 
----
+1. **Logging Personalizado:** Implementar um logger de CLI baseado no FreeLLMAPI que capture:
+   - The commit Author (nome/email do usuário)
+   - Modelo de IA escolhido efetivamente
+   - Modelo do Claude Code utilizado como interface
+   - Timestamp e ID da sessão
+   Salvar essa captura em um arquivo oculto (ex: `.claude/commit_attribution.jsonl`) e anexar essa referência ao commit (ex: através do `git commit --message "Co‑Authored‑By: Claude Code <noreply@anthropic.com> ..."`).
 
-### 2. Estrutura do Monorepo e Tecnologias Utilizadas
-| Camada | Diretório | Observação |
-|--------|-----------|------------|
-| **Aplicações** | `apps/api`, `apps/controller`, `apps/web` | Estruturas de `package.json` presentes. |
-| **Pacotes** | `packages/shared`, `packages/database`, `packages/queue`, `packages/server-adapter` | Pacotes declarados no workspace; apenas `shared` possui `build` e código. |
-| **Infraestrutura** | `infrastructure/` | Diretórios criados, sem arquivos de configuração. |
-| **Legado Python** | `arquivo/`, `game/`, `network/`, `persistence/`, `plugins/`, `security/`, `resources/` | Legado preservado conforme `AGENTS.md`. |
-| **Testes** | `tests/foundation.test.mjs` | Teste validando `shared` e `pnpm-workspace.yaml`. |
+2. **Hook Git Customizado:** Usar um `post-commit` hook que grava um resumo estruturado em `.git/COMMIT_ATTRIBUTION`. O hook seria executado após cada commit do Claude Code, lendo automaticamente de um arquivo de log do FreeLLMAPI (se disponível) e escrevendo uma representação JSON simples:
+   {
+     "author": "Matheus Mosken Diegues <dmosken2015@gmail.com>",
+     "ai_router": "FreeLLMAPI",
+     "ai_model": "<model‑id>",
+     "ai_interface": "Claude Code",
+     "commit_hash": "<sha>",
+     "commit_message": "<mensagem original>"
+   }
 
----
+3. **Atribuição Condicional:** Adicionar um prefixo condicional para commits gerados via FreeLLMAPI (ex: "[AI-Router] ..." na mensagem). Isso pode ser aplicado por meio de um trigger no CLI: se o usuário definir `CLD_AI_MODE=true`, a mensagem inclui marcadores padronizados.
 
-### 3. Funcionalidades Implementadas vs. Não Implementadas (Atualizado)
-- **Implementado:** Estrutura de monorepo (`pnpm-workspace.yaml`), contratos básicos em `packages/shared`, configurações de Lint/Prettier/TS.
-- **Não Implementado:** A maioria da lógica de negócio (`apps/api`, `controller`, `web`, `database`, `queue`, `server-adapter`) está vazia, contendo apenas o `package.json`. Infraestrutura Docker inexistente.
+4. **Sincronização da Interface de Usuário:** Fornecer uma interface (`/config` comando) para permitir que o usuário defina:
+   - Autor padrão (caso o mesmo usuário esteja commitando via vários sistemas)
+   - ID do modelo preferido (caso o usuário queira sobrescrever a seleção do FreeLLMAPI)
+   - Formato de attribution (ex: manter/Co‑Authored‑By + JSON adicional)
 
----
+5. **Planejamento do FreeLLMAPI:** Coordenar com a equipe responsável pelo roteamento do FreeLLMAPI para expor um endpoint que registra cada commit em um formato estruturado (mesmo formato JSON), ajudando a rastrear a atribuição em tempo real.
 
-### 4. Problemas e Riscos
-1. **Contaminação de Legado:** A raiz contém módulos Python que podem ser confundidos com a nova estrutura.
-2. **Infraestrutura:** Ausência de `docker-compose.yml` e Dockerfiles.
-3. **Persistência/Fila:** Interfaces (`packages/database`, `queue`) definidas no nome, mas sem código.
+**Próximos Passos** (para o sprint atual)
 
----
+- A equipe do Claude Code deve adicionar um campo `attribution_metadata` ao `git-commit` hook.
+- A ferramenta FreeLLMAPI deve adicionar um logger que escreva eventos em um arquivo de log portátil.
+- Projeto deve decidir sobre o esquema de log preferido: JSON vs linha simples.
+- As configurações .claude/.claude.json devem adicionar opções para tags de attribution e autores personalizados.
 
-### 5. Roadmap Técnico (Proposta)
-
-#### Fase 1: Fundação de Infraestrutura e Persistência
-- **Dependências:** Nenhuma.
-- **Entregáveis:** `docker-compose.yml` (Minecraft, db, apps), configuração do banco SQLite, CI/CD básico.
-- **Critério de conclusão:** Ambiente containerizado subindo sem erros; banco SQLite criado.
-
-#### Fase 2: Lógica de Ciclo de Vida e API
-- **Dependências:** Fase 1.
-- **Entregáveis:** API (`apps/api`), Lógica de monitoramento de servidor (`apps/controller`), integração com servidor Paper.
-- **Critério de conclusão:** API gerencia start/stop do servidor Paper via `docker-compose`; status do servidor persiste no SQLite.
-
-#### Fase 3: Frontend e Fila
-- **Dependências:** Fase 2.
-- **Entregáveis:** Interface Next.js, lógica de fila de espera.
-- **Critério de conclusão:** Usuário entra na fila via web e é notificado quando o servidor está `ONLINE`.
-
----
-
-### 6. Decisões Arquiteturais Pendentes (Aprovação necessária)
-1. **Docker Compose:** Confirmação da rede (network) entre o contêiner do servidor Minecraft (com porta UDP 19132) e o contêiner da API/Controller.
-2. **Persistência:** Aprovação para iniciar com SQLite puro (sem ORM complexo) como base para a fila e logs.
-3. **Isolamento de Legado:** Autorização para mover os arquivos da raiz (módulos Python) para `archive/legacy-python/` para reduzir a poluição do monorepo.
-
----
-
-### 7. Evidências Verificadas
-- `tests/foundation.test.mjs` valida que `packages/shared` já expõe `SERVER_STATES` e `MAX_PLAYERS` (10).
-- `package.json` raiz define scripts de build recursivo para monorepo.
-- `packages/shared/package.json` define estrutura como `type: "module"`.
+**Conclusão:** Sem essas extensões, attribution de commits permanece estática e anônima para contribuições geradas por IA. Uma adoção significativa de GitHub Actions/GitOps pode dificultar a avaliação do contributo real (quem gerou o commit através do FreeLLMAPI). A adição de log e hooks personalizados é um pré-requisito para um pipeline de desenvolvimento responsável.
 
 ---
 
