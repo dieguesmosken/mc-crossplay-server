@@ -1,3 +1,25 @@
+## Relatório de Documentação de Versionamento e Fluxo Git
+
+**2026-11-18T07:19:32-03:00 [America/Sao_Paulo]**
+
+Incorporei oficialmente o documento de fluxo de trabalho Git e GitHub ao projeto.
+
+- **Documentação incorporada:** `docs/RELEASE_AND_GIT_WORKFLOW.md` agora é a referência oficial para versionamento, changelog, tags, push e Pull Requests.
+- **Referência em AGENTS.md:** Adicionada regra instruindo a consulta ao workflow antes de qualquer operação de versionamento ou publicação.
+- **Atualização do Changelog:** Adicionada seção `Unreleased` no topo do `CHANGELOG.md` para registrar o trabalho em andamento.
+
+**Detalhes técnicos:**
+- **Commit:** `1a22c76` — `docs: incorporate release and git workflow documentation`
+- **Arquivos alterados:** `AGENTS.md`, `CHANGELOG.md`
+- **Arquivo criado:** `docs/RELEASE_AND_GIT_WORKFLOW.md`
+- **Status do Push:** O push para o remote falhou devido à falta de credenciais/dispositivo de terminal para autenticação HTTPS (`fatal: could not read Username`). As alterações permanecem salvas localmente no commit `1a22c76` na branch `rebuild/java-bedrock-platform`.
+
+**Próximos passos:**
+- O usuário deve realizar o push manualmente ou configurar as credenciais no ambiente WSL/Docker para permitir que o Claude Code realize o push automático conforme o novo workflow.
+- Continuar com a auditoria do legado ou iniciar a Fase 2 (Controller).
+
+---
+
 ## Relatório de Decisões e Preferências do Projeto
 
 **2026-11-18T06:56:26-03:00 [America/Sao_Paulo]**
