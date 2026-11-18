@@ -1,3 +1,10 @@
+# Changelog
+
+## Unreleased
+
+- [ ] Documentação oficial de versionamento, changelog e fluxo Git/GitHub (`docs/RELEASE_AND_GIT_WORKFLOW.md`).
+- [ ] Referência clara no `AGENTS.md` para consultas sobre commits, tags, publicação e Pull Requests.
+
 ### [0.0.1] - 2023-05-01
 
 #### Added

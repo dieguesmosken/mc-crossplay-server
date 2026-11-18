@@ -52,7 +52,13 @@ Construir uma plataforma local-first para operar um servidor Minecraft Paper com
 2. Implemente somente o escopo solicitado.
 3. Execute verificações.
 4. Informe arquivos alterados, comandos e resultados.
-5. Não faça deploy, exclusões remotas ou mudanças destrutivas sem autorização explícita.
+5. Non faça deploy, exclusões remotas ou mudanças destrutivas sem autorização explícita.
+
+## Versionamento, Changelog e Publicação
+
+- Antes de criar versões, tags, push ou Pull Requests, consulte **`docs/RELEASE_AND_GIT_WORKFLOW.md`**.
+- Esse documento é a referência oficial para changelog, numeração de versões, Git tags, publicação segura e critérios de Pull Requests.
+- Não duplique o procedimento aqui; mantenha apenas esta referência.
 
 ## Relatórios e Auditoria (ChatGPT)
 
