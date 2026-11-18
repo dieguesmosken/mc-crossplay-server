@@ -2,29 +2,25 @@
 
 ## Unreleased
 
-- Corrigir mounts de volumes no `docker-compose.yml` para não ocultar `paper.jar`, EULA e plugins.
-- Definir combinação compatível de Paper, Geyser, Floodgate e Java (consultar fontes oficiais).
-- Validar URL de download do Paper no Dockerfile.
+### Implementado e comprovado
+- Estrutura Docker do runtime (Dockerfile + entrypoint.sh).
+- Configuração do Docker Compose com serviço `papermc`.
+- Seleção da combinação compatível: Paper 26.3 (build 255), Java 25 (eclipse-temurin:25-jdk-alpine), GeyserMC latest, Floodgate latest.
+- Correção dos volumes e mounts: bind mounts separados para `world`, `plugins`, `config`, `config/eula.txt`, `logs` — não ocultam `paper.jar` nem plugins da imagem.
+- Remoção do atributo obsoleto `version: "3.8"` do docker-compose.yml.
+- Portas vinculadas a loopback: `127.0.0.1:25565/tcp` (Java) e `127.0.0.1:19132/udp` (Bedrock).
 - Documentação completa do runtime em `infrastructure/minecraft/README.md` e `infrastructure/docker/README.md`.
-- Roadmap atualizado refletindo implementação real da Fase 1.
-- ChatGPT.md atualizado com relatório de implementação, testes e limitações.
-- .gitignore: adicionada apenas `.claude/INSTRUCOES-ATUAIS.md` (não todo o diretório `.claude/`).
-- Validar startup real do runtime (Java e Bedrock) com evidências.
-- Testar conexão Java (TCP 25565) com cliente Minecraft Java Edition.
-- Testar conexão Bedrock (UDP 19132) com cliente Minecraft Bedrock.
-- Validar `server.properties` e geração de mundo.
+- Ajuste de `.gitignore` para ignorar somente `.claude/INSTRUCOES-ATUAIS.md`.
+- Build da imagem Docker (`docker-papermc:latest`) — Paper 26.3 (~55 MB) baixado de `fill-data.papermc.io`.
+- Validação de `docker compose config` — sintaxe válida, sem warnings.
 
-### Validações realizadas
-
-- `docker compose config` — aprovado.
-- `docker compose build` — aprovado.
-- Paper 26.3 baixado e imagem Docker construída.
-
-### Limitações
-
-- EULA ainda não aceita.
-- Inicialização real do servidor pendente.
-- Conexões Java e Bedrock pendentes.
+### Ainda pendente
+- Aceitação manual da EULA pelo usuário (arquivo `./data/config/eula.txt` está em `eula=false`).
+- Inicialização real do servidor (container não inicia sem `eula=true`).
+- Verificação dos arquivos gerados e persistência dos dados (world, plugins, logs, server.properties).
+- Testes de conexão Java (TCP 25565) com cliente Minecraft Java Edition.
+- Testes de conexão Bedrock (UDP 19132) com cliente Minecraft Bedrock.
+- Validação de `server.properties` e geração de mundo.
 
 ---
 

@@ -1,22 +1,25 @@
-## Relatório de Documentação de Versionamento e Fluxo Git
+## Relatório de Auditoria e Conciliação do Projeto
 
-**2026-11-18T07:19:32-03:00 [America/Sao_Paulo]**
+**2026-11-18T20:19:22-03:00 [America/Sao_Paulo]**
 
-Incorporei oficialmente o documento de fluxo de trabalho Git e GitHub ao projeto.
+Revisão completa da documentação do projeto para refletir o estado real do repositório na branch `rebuild/java-bedrock-platform`.
 
-- **Documentação incorporada:** `docs/RELEASE_AND_GIT_WORKFLOW.md` agora é a referência oficial para versionamento, changelog, tags, push e Pull Requests.
-- **Referência em AGENTS.md:** Adicionada regra instruindo a consulta ao workflow antes de qualquer operação de versionamento ou publicação.
-- **Atualização do Changelog:** Adicionada seção `Unreleased` no topo do `CHANGELOG.md` para registrar o trabalho em andamento.
+- **Branch sincronizada:** `rebuild/java-bedrock-platform` está sincronizada com `origin/rebuild/java-bedrock-platform` (sem commits locais pendentes de push após a conciliação).
+- **Commit de conciliação:** `74775bf` — `feat(infrastructure): implement Docker runtime for PaperMC 26.3 + GeyserMC + Floodgate` (10 arquivos, 349 inserções, 174 deleções, novo `entrypoint.sh`).
+- **CHANGELOG.md conciliado:** Seção `Unreleased` reestruturada separando claramente **Implementado e comprovado** vs **Ainda pendente**. Nenhuma versão numerada criada; v0.0.1 continua bloqueada até runtime inicializável e demonstrável.
+- **Docker validado:** `docker compose config` (sintaxe válida, sem warnings) e `docker compose build` (imagem `docker-papermc:latest` criada, Paper 26.3 ~55 MB baixado de `fill-data.papermc.io`) executados com sucesso.
+- **Runtime implementado:** Paper 26.3 + GeyserMC + Floodgate com Java 25, volumes persistentes redesenhados, portas loopback, EULA gerenciada via bind mount.
+- **EULA:** Permanece em `eula=false` em `./data/config/eula.txt` — requer aceitação manual pelo usuário após leitura da EULA oficial.
+- **Pendentes:** Inicialização real do servidor, verificação de persistência (world, plugins, logs, server.properties), testes de conexão Java (TCP 25565) e Bedrock (UDP 19132).
 
-**Detalhes técnicos:**
-- **Commit:** `1a22c76` — `docs: incorporate release and git workflow documentation`
-- **Arquivos alterados:** `AGENTS.md`, `CHANGELOG.md`
-- **Arquivo criado:** `docs/RELEASE_AND_GIT_WORKFLOW.md`
-- **Status do Push:** O push para o remote falhou devido à falta de credenciais/dispositivo de terminal para autenticação HTTPS (`fatal: could not read Username`). As alterações permanecem salvas localmente no commit `1a22c76` na branch `rebuild/java-bedrock-platform`.
+### Correções históricas
 
-**Próximos passos:**
-- O usuário deve realizar o push manualmente ou configurar as credenciais no ambiente WSL/Docker para permitir que o Claude Code realize o push automático conforme o novo workflow.
-- Continuar com a auditoria do legado ou iniciar a Fase 2 (Controller).
+As seguintes afirmações anteriores **não representam mais o estado atual** e são corrigidas:
+
+- **Fase 1 "concluída"**: A antiga afirmação de que a Fase 1 estava concluída não procede — a configuração Docker está implementada e testada (build), mas a inicialização real e validações de conexão ainda não ocorreram.
+- **Paper 1.20.1**: A referência ao Paper 1.20.1 está desatualizada; a implementação atual utiliza **Paper 26.3 (Minecraft 1.21.4)** com Java 25.
+- **Investigação de autoria de commits**: As investigações sobre customização de autoria (hooks, wrappers, metadados, FreeLLMAPI, Co-Authored-By personalizado) foram **abandonadas por decisão do usuário**. Esses assuntos não devem ser tratados como tarefas futuras nem reativados. Os registros históricos em `ChatGPT.md` são preservados, mas identificados como superados.
+- **Equipe de modelos de IA**: A ideia de "IA colaborativa" permanece pausada (conforme registro anterior) e não será implementada.
 
 ---
 
