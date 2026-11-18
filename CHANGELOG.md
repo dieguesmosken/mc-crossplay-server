@@ -14,6 +14,18 @@
 - Testar conexão Bedrock (UDP 19132) com cliente Minecraft Bedrock.
 - Validar `server.properties` e geração de mundo.
 
+### Validações realizadas
+
+- `docker compose config` — aprovado.
+- `docker compose build` — aprovado.
+- Paper 26.3 baixado e imagem Docker construída.
+
+### Limitações
+
+- EULA ainda não aceita.
+- Inicialização real do servidor pendente.
+- Conexões Java e Bedrock pendentes.
+
 ---
 
 *O histórico de versões antigas (0.0.1, 0.0.2 de 2023) pertence ao projeto Python legado e foi preservado na branch `main` como backup. Esta branch contém apenas o histórico da nova plataforma Minecraft Crossplay Server.*
