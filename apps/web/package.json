@@ -1,1 +1,5 @@
-{"name":"@mc-platform/web","version":"0.1.0","private":true}
+{
+  "name": "@mc-platform/web",
+  "version": "0.1.0",
+  "private": true
+}

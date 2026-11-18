@@ -1,9 +1,11 @@
 # AGENTS.md — regras para agentes de desenvolvimento
 
 ## Missão
+
 Construir uma plataforma local-first para operar um servidor Minecraft Paper com compatibilidade Bedrock via GeyserMC/Floodgate, controlado por API e apresentado por site com fila de espera.
 
 ## Antes de alterar código
+
 1. Leia README.md e os documentos em docs/.
 2. Verifique branch, estado do Git e alterações não commitadas.
 3. Inspecione a implementação existente antes de substituir arquivos.
@@ -11,6 +13,7 @@ Construir uma plataforma local-first para operar um servidor Minecraft Paper com
 5. Faça mudanças pequenas, rastreáveis e reversíveis.
 
 ## Restrições fundamentais
+
 - Não apagar, reescrever ou mover o legado sem pedido explícito. O legado está em archive/legacy-python-bedrock-2023.
 - Não adicionar credenciais, tokens, senhas, chaves privadas ou arquivos .env reais ao Git.
 - Não expor Docker socket, console administrativo ou API de controle à internet.
@@ -23,6 +26,7 @@ Construir uma plataforma local-first para operar um servidor Minecraft Paper com
 - Não declarar tarefa concluída sem executar testes relevantes e relatar os que não puderam ser executados.
 
 ## Diretrizes técnicas
+
 - Preferir TypeScript para aplicações Node.js.
 - Separar frontend, API, controller, persistência e integração Minecraft.
 - Manter a camada de servidor independente do provedor de hospedagem.
@@ -35,6 +39,7 @@ Construir uma plataforma local-first para operar um servidor Minecraft Paper com
 - Tornar tempos de desligamento configuráveis; ainda não foram aprovados.
 
 ## Qualidade
+
 - Adicionar testes unitários e de integração.
 - Executar lint, typecheck, testes e build aplicáveis.
 - Não mascarar falhas com testes ignorados ou comandos que sempre retornam sucesso.
@@ -42,6 +47,7 @@ Construir uma plataforma local-first para operar um servidor Minecraft Paper com
 - Fixar versões no lockfile.
 
 ## Forma de trabalhar
+
 1. Resuma objetivo e arquivos que pretende alterar.
 2. Implemente somente o escopo solicitado.
 3. Execute verificações.
@@ -49,4 +55,5 @@ Construir uma plataforma local-first para operar um servidor Minecraft Paper com
 5. Não faça deploy, exclusões remotas ou mudanças destrutivas sem autorização explícita.
 
 ## Critérios de conclusão
+
 Comportamento implementado, testes relevantes aprovados (ou limitações explicitadas), documentação atualizada e nenhum dado sensível no diff.

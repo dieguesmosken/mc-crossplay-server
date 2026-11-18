@@ -1,0 +1,30 @@
+# docker-compose.yml para o runtime Minecraft (Paper + GeyserMC + Floodgate)
+# Ambiente local-first, preserva mundo, plugins e configs em volumes persistentes.
+
+version: "3.8"
+
+services:
+  papermc:
+    # Construção baseada no Dockerfile abaixo
+    build:
+      context: ./minecraft
+      dockerfile: Dockerfile
+    container_name: minecraft-paper
+    working_dir: /server
+    restart: unless-stopped
+    mem_limit: 2g
+    # Portas mapeadas para o host (apenas para conexão local, conforme restrições)
+    ports:
+      - "25565:25565/tcp"
+      - "19132:19132/udp"
+    volumes:
+      - ./data/world:/server/world
+      - ./data/plugins:/server/plugins
+      - ./data/config:/server
+      - ./data/logs:/server/logs
+    networks:
+      - minecraft_net
+
+networks:
+  minecraft_net:
+    driver: bridge

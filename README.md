@@ -5,11 +5,13 @@ Plataforma para operar um servidor Minecraft Java e Bedrock com entrada orientad
 > Estado atual: fundação do monorepo em preparação. O runtime Minecraft ainda não foi implementado.
 
 ## Objetivo
+
 Servidor para até 10 jogadores simultâneos, aceitando clientes Java e Bedrock. O site consulta o estado, solicita a inicialização quando necessário, acompanha a espera e apresenta os dados de conexão quando o servidor estiver pronto.
 
 O navegador não consegue iniciar o cliente Minecraft automaticamente em todos os dispositivos. O jogador ainda deverá abrir o Minecraft e conectar-se pelo próprio jogo.
 
 ## Tecnologias
+
 - Minecraft: Paper (Java).
 - Compatibilidade Bedrock: GeyserMC + Floodgate.
 - Backend/API: Node.js + Fastify.
@@ -22,6 +24,7 @@ O navegador não consegue iniciar o cliente Minecraft automaticamente em todos o
 As versões e ferramentas da fundação estão documentadas em [docs/DEVELOPMENT_SETUP.md](docs/DEVELOPMENT_SETUP.md). A versão-alvo do Minecraft e a versão de Java exigida pelo Paper serão definidas antes da configuração do runtime.
 
 ## Estrutura
+
 - apps/web: site Next.js.
 - apps/api: API HTTP e eventos de estado.
 - apps/controller: ciclo de vida do servidor.
@@ -34,6 +37,7 @@ As versões e ferramentas da fundação estão documentadas em [docs/DEVELOPMENT
 - tests: testes automatizados.
 
 ## Funcionalidades previstas
+
 - Estado do servidor consultável pelo site.
 - Inicialização sob demanda e operação contínua opcional.
 - Estados de inicialização, carregamento e verificação de prontidão.
@@ -45,13 +49,16 @@ As versões e ferramentas da fundação estão documentadas em [docs/DEVELOPMENT
 A fila do site é uma fila de solicitações/reservas; não é uma fila de pacotes TCP/UDP do Minecraft.
 
 ## Desenvolvimento
+
 Requisitos iniciais:
+
 - Node.js 26.13.1 LTS.
 - pnpm 12.21.0.
 - TypeScript 7.0.2.
 - Docker Desktop integrado ao WSL2.
 
 Comandos principais:
+
 ```bash
 pnpm install
 pnpm lint
@@ -62,9 +69,11 @@ pnpm format:check
 ```
 
 ## Legado
+
 A implementação Python de 2023 foi preservada. Os arquivos antigos ainda presentes na raiz não fazem parte do novo workspace e não devem ser removidos ou movidos sem revisão e autorização explícita.
 
 ## Segurança
+
 - Nunca commitar tokens, senhas, chaves ou arquivos locais de ambiente.
 - Não expor a API de controle diretamente à internet.
 - Não publicar portas administrativas ou Docker socket.

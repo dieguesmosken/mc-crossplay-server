@@ -1,9 +1,11 @@
 # Especificação do produto
 
 ## Visão
+
 Experiência simples para que um grupo pequeno entre em um servidor Minecraft Java/Bedrock sem exigir que ele fique ligado o tempo todo.
 
 ## Escopo inicial
+
 - Até 10 jogadores simultâneos.
 - Uma única instância de mundo.
 - Java Edition por Paper.
@@ -13,6 +15,7 @@ Experiência simples para que um grupo pequeno entre em um servidor Minecraft Ja
 - Preparação para migração a VPS Linux/EC2 sem dependência exclusiva de provedor.
 
 ## Jornada do jogador
+
 1. Jogador abre o site e solicita entrada.
 2. API verifica status e capacidade.
 3. Se desligado, uma solicitação idempotente é enviada ao Controller.
@@ -23,11 +26,13 @@ Experiência simples para que um grupo pequeno entre em um servidor Minecraft Ja
 O navegador não consegue iniciar o cliente Minecraft de forma universal. Links de protocolo podem ser uma conveniência opcional e específica de plataforma.
 
 ## Estados operacionais
+
 OFFLINE, START_REQUESTED, STARTING, LOADING_WORLD, VERIFYING_CONNECTION, ONLINE, IDLE, STOPPING e ERROR.
 
 A prontidão deve ser confirmada por sinal real do servidor, não somente pelo processo Java estar ativo.
 
 ## Fila e capacidade
+
 - Fila gerenciada pela API e persistida no banco.
 - Uma instância Minecraft; fila não cria instâncias extras.
 - Máximo inicial de 10 jogadores simultâneos.
@@ -36,9 +41,11 @@ A prontidão deve ser confirmada por sinal real do servidor, não somente pelo p
 - Estado da fila sobrevive a reinicialização da API.
 
 ## Desligamento automático
+
 Comportamento configurável: quando não houver jogadores durante uma janela de ociosidade, avisar antes de desligar, permitir cancelamento se alguém entrar, salvar mundo e realizar backup. Tempo exato e período de aviso ainda precisam ser aprovados.
 
 ## Segurança
+
 - Nenhuma senha Microsoft é solicitada pelo site.
 - Autenticação de jogo ocorre dentro do Minecraft.
 - Floodgate facilita integração Bedrock sem exigir conta Java, mas não substitui autenticação normal da plataforma Bedrock.
@@ -47,6 +54,7 @@ Comportamento configurável: quando não houver jogadores durante uma janela de 
 - Backups protegidos e política de retenção documentada.
 
 ## Fora do escopo inicial
+
 - Rede de múltiplos servidores/mundos.
 - Kubernetes e balanceamento horizontal.
 - Login Microsoft pelo site.
