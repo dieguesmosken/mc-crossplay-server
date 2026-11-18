@@ -1,4 +1,8 @@
 3. **Limitações e Passos Futuros**
+**Status Atual (2026-11-18):**
+- Fase 1 (Runtime Minecraft) concluída: Dockerfile, docker-compose.yml e documentação de infraestrutura implementados e commitados.
+- Servidor Paper 1.20.1 configurado com GeyserMC e Floodgate em volumes persistentes.
+
 **Limitações:**
 
 1. **Visibilidade Interna:** Sem acesso ao código-fonte ou logs do FreeLLMAPI, não é possível mapear o modelo de IA selecionado (Fable, Opus, Sonnet, etc.) efetivamente utilizado para cada solicitação.
