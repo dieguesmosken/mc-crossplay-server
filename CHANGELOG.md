@@ -2,61 +2,18 @@
 
 ## Unreleased
 
-- [ ] Documentação oficial de versionamento, changelog e fluxo Git/GitHub (`docs/RELEASE_AND_GIT_WORKFLOW.md`).
-- [ ] Referência clara no `AGENTS.md` para consultas sobre commits, tags, publicação e Pull Requests.
+- Corrigir mounts de volumes no `docker-compose.yml` para não ocultar `paper.jar`, EULA e plugins.
+- Definir combinação compatível de Paper, Geyser, Floodgate e Java (consultar fontes oficiais).
+- Validar URL de download do Paper no Dockerfile.
+- Documentação completa do runtime em `infrastructure/minecraft/README.md` e `infrastructure/docker/README.md`.
+- Roadmap atualizado refletindo implementação real da Fase 1.
+- ChatGPT.md atualizado com relatório de implementação, testes e limitações.
+- .gitignore: adicionada apenas `.claude/INSTRUCOES-ATUAIS.md` (não todo o diretório `.claude/`).
+- Validar startup real do runtime (Java e Bedrock) com evidências.
+- Testar conexão Java (TCP 25565) com cliente Minecraft Java Edition.
+- Testar conexão Bedrock (UDP 19132) com cliente Minecraft Bedrock.
+- Validar `server.properties` e geração de mundo.
 
-### [0.0.1] - 2023-05-01
+---
 
-#### Added
-
-- Initial release.
-
-#### Changed
-
-- criado script de redirecionanmento de portas.
-
-#### Removed
-
-- Nothing.
-
-## To Do
-
-- [ ] Criar estutura basica inicial.
-- [ ] Criar estruturas do servidor.
-- [ ] Criar a classe main.py do servidor.
-- [ ] Criar outras classes correspondentes
-
-## Done ✓
-
-- [x] script de redirecionamento de portas
-- [x] script de backup dos arquivos do servidor
-
-### [0.0.2] - 2023-06-12
-
-#### Added
-
-- main.py
--
-
-#### Changed
-
-- criado estutura basica inicial.
-- Reestruturação da ideia do projeto.
-- movido para o arquivo o projeto anterior
-
-#### Removed
-
-- script de redirecionamento de portas
-- script de backup dos arquivos do servidor
-
-## To Do
-
-- [ ] Criar estruturas do servidor.
-- [ ] Criar a classe main.py do servidor.
-- [ ] Criar outras classes correspondentes
-
-## Done ✓
-
-- [x] Script de redirecionamento de portas
-- [x] Script de backup dos arquivos do servidor
-- [x] Estutura basica inicial.
+*O histórico de versões antigas (0.0.1, 0.0.2 de 2023) pertence ao projeto Python legado e foi preservado na branch `main` como backup. Esta branch contém apenas o histórico da nova plataforma Minecraft Crossplay Server.*

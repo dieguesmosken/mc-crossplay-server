@@ -11,13 +11,24 @@
 
 ## Fase 1 — Runtime Minecraft
 
-- [ ] Definir a versão-alvo do Minecraft e confirmar os requisitos de Java/Paper.
-- [ ] Subir Paper localmente.
-- [ ] Aceitar EULA e configurar server.properties conscientemente.
-- [ ] Instalar/configurar GeyserMC e Floodgate.
-- [ ] Validar entrada Java.
-- [ ] Validar entrada Bedrock.
-- [ ] Persistir mundo e plugins em volumes.
+**Implementado (configuração completa, pendente validação real):**
+- [x] Definir versão-alvo e confirmar requisitos Java/Paper → **Paper 26.3 (Minecraft 1.21.4) + Java 25 (Temurin)**.
+- [x] Dockerfile com Paper 26.3 build 255 de `fill-data.papermc.io`, Java 25.
+- [x] entrypoint.sh com download condicional de GeyserMC/Floodgate (Spigot/Paper latest) e validação de EULA.
+- [x] docker-compose.yml com volumes redesenhados (não ocultam paper.jar nem plugins da imagem), portas em loopback (127.0.0.1), TCP para Java e UDP para Bedrock.
+- [x] Persistência de mundo, plugins, configs, logs e EULA em `./data/`.
+- [x] EULA NÃO aceita automaticamente — arquivo `./data/config/eula.txt` montado em `/server/eula.txt` com `eula=false` inicial.
+
+**Testado:**
+- [x] `docker compose config` — sintaxe válida (apenas warning de `version` obsoleto, removido).
+- [x] `docker compose build` — build bem-sucedido, imagem `docker-papermc:latest` criada.
+
+**Pendente (requer ação do usuário / cliente Minecraft):**
+- [ ] Aceitar EULA manualmente (`echo 'eula=true' > infrastructure/docker/data/config/eula.txt` após ler a EULA oficial).
+- [ ] Validar startup real com EULA aceita (container inicia e Paper carrega).
+- [ ] Testar conexão Java (TCP 25565) com cliente Minecraft Java Edition.
+- [ ] Testar conexão Bedrock (UDP 19132) com cliente Minecraft Bedrock.
+- [ ] Validar `server.properties` e geração de mundo.
 
 ## Fase 2 — Controller
 
@@ -61,3 +72,4 @@
 - [ ] Dashboard de acompanhamento do desenvolvimento (estático via HTML/CSS/JS + `project-status.json` + integração GitHub).
 
 Cada fase exige testes documentados e validação real antes de iniciar a seguinte.
+**A Fase 1 NÃO está concluída** — aguarda validação de startup real e conexões Java/Bedrock.

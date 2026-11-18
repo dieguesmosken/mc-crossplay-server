@@ -1,7 +1,13 @@
 # docker-compose.yml para o runtime Minecraft (Paper + GeyserMC + Floodgate)
 # Ambiente local-first, preserva mundo, plugins e configs em volumes persistentes.
-
-version: "3.8"
+#
+# Montagens de volume foram redesenhadas para NÃO ocultar arquivos da imagem:
+#   - /server/paper.jar (JAR executável) nunca é coberto por volume.
+#   - /server/plugins/geyser.jar e floodgate.jar (incluídos na imagem) só são
+#     sobrescritos se o volume local tiver arquivos; pastas vazias preservam a imagem.
+#   - /server/eula.txt e server.properties são geridos pelo controller/API, não pelo build.
+# Portas vinculadas a 127.0.0.1 (local-only) por padrão; libere 0.0.0.0 se precisar
+# de acesso externo, com documentação e firewall correspondentes.
 
 services:
   papermc:
@@ -13,14 +19,24 @@ services:
     working_dir: /server
     restart: unless-stopped
     mem_limit: 2g
-    # Portas mapeadas para o host (apenas para conexão local, conforme restrições)
+    # Portas mapeadas apenas para loopback (127.0.0.1) em uso local.
+    # Java usa TCP; Bedrock usa UDP.
     ports:
-      - "25565:25565/tcp"
-      - "19132:19132/udp"
+      - "127.0.0.1:25565:25565/tcp"
+      - "127.0.0.1:19132:19132/udp"
     volumes:
+      # Mundo: persiste apenas o mundo gerado. Nunca cubra /server.
       - ./data/world:/server/world
+      # Plugins: pasta vazia preserva os JARs da imagem (Geyser/Floodgate).
+      # Se adicionar plugins manualmente, coloque em ./data/plugins.
       - ./data/plugins:/server/plugins
-      - ./data/config:/server
+      # Configurações do servidor (server.properties, whitelist.json, etc.).
+      # Caminho separado para não ocultar paper.jar, eula.txt nem os plugins da imagem.
+      - ./data/config:/server/config
+      # EULA: arquivo gerenciado pelo usuário/controller. Inicial com eula=false.
+      # O entrypoint verifica /server/eula.txt e sai com código 1 se não for "eula=true".
+      - ./data/config/eula.txt:/server/eula.txt
+      # Logs do servidor.
       - ./data/logs:/server/logs
     networks:
       - minecraft_net
