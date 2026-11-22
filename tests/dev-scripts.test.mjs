@@ -11,7 +11,7 @@ const RUN_LOCAL = new URL('../scripts/dev/run-local.sh', import.meta.url).pathna
 
 // Ambiente isolado com `java` e `curl` falsos. O java falso responde a `-version` com a
 // versão pedida; nos demais casos registra cwd e argumentos.
-async function createSandbox(javaVersion = '25.0.1') {
+async function createSandbox(javaVersion = '25.0.1', { curlBroken = false } = {}) {
   const root = await mkdtemp(path.join(tmpdir(), 'mc-dev-'));
   const bin = path.join(root, 'bin');
   await mkdir(bin);
@@ -31,6 +31,9 @@ echo "args=$*" >> "${root}/java.log"
   await writeFile(
     path.join(bin, 'curl'),
     `#!/bin/sh
+if [ "$1" = "--version" ]; then
+  ${curlBroken ? 'echo \'CANNOT LINK EXECUTABLE "curl"\' >&2; exit 1' : 'echo "curl 8.0.0"; exit 0'}
+fi
 echo "$*" >> "${root}/curl.log"
 out=""
 while [ $# -gt 0 ]; do
@@ -57,8 +60,8 @@ function baseEnv(sandbox, extra = {}) {
   return { ...env, PATH: `${sandbox.bin}:${process.env.PATH}`, HOME: sandbox.root, ...extra };
 }
 
-async function withSandbox(javaVersion, fn) {
-  const sandbox = await createSandbox(javaVersion);
+async function withSandbox(javaVersion, fn, options) {
+  const sandbox = await createSandbox(javaVersion, options);
   try {
     await fn(sandbox);
   } finally {
@@ -112,6 +115,35 @@ test('doctor suggests a JVM heap when /proc/meminfo is readable', async (t) => {
     assert.ok(match, 'linha MC_JAVA_HEAP_SUGERIDO ausente');
     assert.ok(Number(match[1]) >= 512 && Number(match[1]) <= 2048);
   });
+});
+
+test('doctor adapts hints per platform and caps the Termux heap lower than Linux', async (t) => {
+  if (!existsSync('/proc/meminfo')) t.skip('/proc/meminfo indisponível');
+  await withSandbox('25.0.1', async (sandbox) => {
+    const termux = runDoctor(sandbox, { TERMUX_VERSION: '0.118.3' });
+    const heap = Number(termux.stdout.match(/^MC_JAVA_HEAP_SUGERIDO=(\d+)M$/m)[1]);
+    assert.ok(heap <= 1024, `heap no Termux deveria ser <= 1024M, veio ${heap}M`);
+
+    const wsl = runDoctor(sandbox, { WSL_DISTRO_NAME: 'Ubuntu' });
+    assert.match(wsl.stdout, /networkingMode=mirrored/);
+    assert.doesNotMatch(termux.stdout, /networkingMode=mirrored/);
+  });
+});
+
+test('doctor reports a broken curl with a Termux-specific fix', async () => {
+  await withSandbox(
+    '25.0.1',
+    async (sandbox) => {
+      const termux = runDoctor(sandbox, { TERMUX_VERSION: '0.118.3' });
+      assert.match(termux.stdout, /\[FALHA\]\s+curl está instalado, mas não executa/);
+      assert.match(termux.stdout, /pkg update && pkg upgrade/);
+      assert.equal(termux.status, 1);
+
+      const linux = runDoctor(sandbox);
+      assert.doesNotMatch(linux.stdout, /pkg upgrade/);
+    },
+    { curlBroken: true },
+  );
 });
 
 test('run-local downloads Paper (URL from the Dockerfile) and plugins, never accepts the EULA', async () => {

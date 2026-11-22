@@ -3,6 +3,10 @@
 #
 # Uso: sh scripts/dev/doctor.sh
 #
+# O comportamento é ADAPTADO a cada ambiente, respeitando as limitações de cada um (ex.: o
+# Termux não tem Docker nem tanta RAM; o WSL2 em modo NAT não é visível na LAN). As dicas
+# impressas mudam conforme a plataforma detectada.
+#
 # - Detecta a plataforma e confere o que é necessário para rodar o servidor sem Docker
 #   (Java >= 25 e curl). Docker é informativo: o Termux (sem root) não roda Docker.
 # - Imprime MC_JAVA_HEAP_SUGERIDO=<n>M com base na memória disponível.
@@ -56,11 +60,23 @@ if command -v java >/dev/null 2>&1; then
     fi
 else
     fail "Java não encontrado (necessário ${REQUIRED_JAVA}+)"
+    case "${platform}" in
+        termux) info "Termux: tente 'pkg install openjdk-25' (confira com 'pkg search openjdk'); sem ele, use Ubuntu via proot-distro" ;;
+        *) info "Instale com: sudo apt install openjdk-25-jre-headless (Ubuntu 24.04+ / Pop!_OS)" ;;
+    esac
 fi
 
 # --- curl (baixa Paper, Geyser e Floodgate) ------------------------------------------------
 if command -v curl >/dev/null 2>&1; then
-    ok "curl disponível"
+    if curl --version >/dev/null 2>&1; then
+        ok "curl disponível"
+    else
+        fail "curl está instalado, mas não executa (biblioteca incompatível)"
+        case "${platform}" in
+            termux) info "Termux: pacotes desatualizados em partes. Rode 'pkg update && pkg upgrade' e, se persistir, 'pkg install --reinstall openssl libcurl curl git' (ou troque o espelho com termux-change-repo)" ;;
+            *) info "Reinstale o curl pelo gerenciador de pacotes da distribuição" ;;
+        esac
+    fi
 else
     fail "curl não encontrado"
 fi
@@ -68,6 +84,9 @@ fi
 # --- Node (apenas para os testes automatizados) ---------------------------------------------
 if command -v node >/dev/null 2>&1; then
     ok "Node $(node --version) (testes: node --test)"
+    if [ "${platform}" = "termux" ]; then
+        info "Termux: a versão do Node pode ser anterior à fixada em .nvmrc; use 'node --test' em vez de 'pnpm test' (o pnpm exige o engine fixado)"
+    fi
 else
     warn "Node não encontrado: os testes automatizados não vão rodar"
 fi
@@ -81,6 +100,9 @@ case "${platform}" in
         if command -v docker >/dev/null 2>&1; then
             if docker info >/dev/null 2>&1; then
                 ok "Docker com daemon acessível"
+                if command -v ufw >/dev/null 2>&1; then
+                    info "ufw presente: portas publicadas pelo Docker ignoram as regras do ufw. O compose publica só em 127.0.0.1; para expor na LAN, filtre pela cadeia DOCKER-USER (ex.: ufw-docker) e não confie em 'ufw allow'"
+                fi
             else
                 warn "Docker instalado, mas o daemon não responde (está iniciado? seu usuário está no grupo docker?)"
             fi
@@ -100,6 +122,7 @@ if [ "${platform}" = "wsl" ]; then
             ok "Repositório no filesystem Linux do WSL"
             ;;
     esac
+    info "WSL2: no modo NAT padrão, outros aparelhos da LAN (ex.: Bedrock no celular) não alcançam o servidor. Para isso use networkingMode=mirrored no .wslconfig (Windows 11 22H2+) e libere a entrada no firewall do Hyper-V; veja docs/DEVELOPMENT_SETUP.md"
 fi
 
 # --- Memória e heap sugerido ----------------------------------------------------------------------
@@ -107,11 +130,16 @@ avail_kb="$(sed -n 's/^MemAvailable:[[:space:]]*\([0-9]*\) kB.*/\1/p' /proc/memi
 if [ -n "${avail_kb}" ]; then
     avail_mb=$((avail_kb / 1024))
     heap_mb=$((avail_mb * 60 / 100))
+    heap_cap=2048
+    if [ "${platform}" = "termux" ]; then
+        # Celular: RAM compartilhada com o Android, calor e bateria. Teto menor.
+        heap_cap=1024
+    fi
     if [ "${heap_mb}" -lt 512 ]; then
         heap_mb=512
         warn "Pouca memória disponível (${avail_mb} MB): o servidor pode não caber"
-    elif [ "${heap_mb}" -gt 2048 ]; then
-        heap_mb=2048
+    elif [ "${heap_mb}" -gt "${heap_cap}" ]; then
+        heap_mb="${heap_cap}"
     fi
     ok "Memória disponível: ${avail_mb} MB"
     printf '\nMC_JAVA_HEAP_SUGERIDO=%sM\n' "${heap_mb}"
