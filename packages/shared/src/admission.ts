@@ -65,3 +65,22 @@ export function parseHeartbeat(input: unknown): Result<Heartbeat> {
   }
   return ok({ players: parsed });
 }
+
+/** POST /v1/server/events — o plugin avisa que um jogador entrou ou saiu de fato. */
+export const SERVER_EVENT_TYPES = ['join', 'quit'] as const;
+export type ServerEventType = (typeof SERVER_EVENT_TYPES)[number];
+
+export interface ServerEvent {
+  readonly type: ServerEventType;
+  readonly player: PlayerIdentity;
+}
+
+export function parseServerEvent(input: unknown): Result<ServerEvent> {
+  if (typeof input !== 'object' || input === null) return fail('corpo deve ser um objeto');
+  const raw = input as Record<string, unknown>;
+  const type = raw.type;
+  if (type !== 'join' && type !== 'quit') return fail('type deve ser "join" ou "quit"');
+  const player = parsePlayerIdentity(raw.player);
+  if (!player.ok) return player;
+  return ok({ type, player: player.value });
+}

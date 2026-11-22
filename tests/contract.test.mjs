@@ -9,6 +9,7 @@ import {
   normalizeUuid,
   parseAdmissionRequest,
   parseHeartbeat,
+  parseServerEvent,
   parsePlayerIdentity,
   signRequest,
   verifyRequest,
@@ -136,4 +137,12 @@ test('HMAC: timestamp fora da janela é recusado e formato ruim é MALFORMED', (
     ok: false,
     reason: 'MALFORMED',
   });
+});
+
+test('parseServerEvent aceita join/quit e recusa o resto', () => {
+  assert.equal(parseServerEvent({ type: 'join', player: JAVA }).ok, true);
+  assert.equal(parseServerEvent({ type: 'quit', player: BEDROCK }).ok, true);
+  assert.equal(parseServerEvent({ type: 'kick', player: JAVA }).ok, false);
+  assert.equal(parseServerEvent({ type: 'join' }).ok, false);
+  assert.equal(parseServerEvent(null).ok, false);
 });

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Adicionado (issue #25) — API da fila (`apps/api`)
+- Fastify + `node:sqlite`: rotas `/v1/server/admissions`, `/v1/server/events` e `/v1/server/heartbeat` (assinadas por HMAC), `/v1/queue/join|leave|status` (site, ainda sem autenticação do jogador) e `/health`. Estado da fila persistido em SQLite e restaurado ao reiniciar.
+- `PlayerQueue` ganhou `statusOf` e `restore`; `shared` ganhou `parseServerEvent`.
+- Testes: `tests/api.test.mjs` com `app.inject` (10 novos) e 1 novo em `contract.test.mjs`; total 50 com `node --test` após `pnpm build`. **Não executado:** servidor real escutando porta (`pnpm --filter @mc-platform/api start`), Termux, Node 26.
+- Limitações: rotas do site permitem enfileirar qualquer UUID e não há limite de pedidos; ver `docs/PLUGIN_CONTRACT.md`.
+
 ### Adicionado (issue #25) — contrato do plugin e lógica da fila
 - `packages/shared`: identidade de jogador (Java/Bedrock, UUID normalizado), validação de `AdmissionRequest` e `Heartbeat`, respostas `allow`/`deny` com mensagens em PT-BR e assinatura HMAC-SHA256 com janela de tempo.
 - `packages/queue`: `PlayerQueue` (lógica pura e em memória): limite de 10 jogadores, fila FIFO, reservas com prazo, reconciliação por heartbeat e relógio injetável.

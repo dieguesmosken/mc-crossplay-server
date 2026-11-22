@@ -133,6 +133,40 @@ export class PlayerQueue {
     this.#promote();
   }
 
+  /** Situação de um jogador (para o site consultar a própria posição). */
+  statusOf(uuid: string): JoinResult | { readonly status: 'none' } {
+    const key = normalizeUuid(uuid);
+    if (key === null) throw new TypeError('UUID inválido');
+    this.#expire();
+    this.#promote();
+    if (this.#online.has(key)) return { status: 'online' };
+    const expiresAt = this.#reservations.get(key);
+    if (expiresAt !== undefined) return { status: 'reserved', expiresAt };
+    const index = this.#waiting.indexOf(key);
+    if (index >= 0) return { status: 'queued', position: index + 1 };
+    return { status: 'none' };
+  }
+
+  /** Restaura o estado salvo (ex.: depois de reiniciar a API). Reservas vencidas são descartadas. */
+  restore(snapshot: QueueSnapshot): void {
+    this.#online.clear();
+    this.#reservations.clear();
+    for (const uuid of snapshot.online) this.#online.add(this.#key({ uuid }));
+    for (const { uuid, expiresAt } of snapshot.reserved)
+      this.#reservations.set(this.#key({ uuid }), expiresAt);
+    const seen = new Set<string>();
+    this.#waiting = [];
+    for (const uuid of snapshot.waiting) {
+      const key = this.#key({ uuid });
+      if (!seen.has(key) && !this.#online.has(key) && !this.#reservations.has(key)) {
+        seen.add(key);
+        this.#waiting.push(key);
+      }
+    }
+    this.#expire();
+    this.#promote();
+  }
+
   snapshot(): QueueSnapshot {
     return {
       capacity: this.capacity,
@@ -142,7 +176,7 @@ export class PlayerQueue {
     };
   }
 
-  #key(player: PlayerIdentity): string {
+  #key(player: { readonly uuid: string }): string {
     const uuid = normalizeUuid(player.uuid);
     if (uuid === null) throw new TypeError('UUID inválido');
     return uuid;

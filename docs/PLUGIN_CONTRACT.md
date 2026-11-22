@@ -1,6 +1,6 @@
 # Contrato entre plugin Paper, API e fila (issue #25)
 
-Estado: **contrato e lógica da fila implementados e testados**. A API (`apps/api`) e o plugin Paper ainda não existem.
+Estado: **contrato, lógica da fila e API implementados e testados**. O plugin Paper ainda não existe.
 
 ## Fluxo
 
@@ -14,14 +14,23 @@ Site ──► API (fila, reservas, SQLite) ◄──► Plugin Paper
 
 ## Rotas planejadas
 
-| Rota                         | Corpo                       | Resposta                                       |
-| ---------------------------- | --------------------------- | ---------------------------------------------- |
-| `POST /v1/server/admissions` | `{ "player": Identity }`    | `{ "decision": "allow" }` ou `deny` + `reason` |
-| `POST /v1/server/heartbeat`  | `{ "players": Identity[] }` | confirmação; a API reconcilia a presença       |
+| Rota                         | Corpo                                              | Resposta                                       |
+| ---------------------------- | -------------------------------------------------- | ---------------------------------------------- |
+| `POST /v1/server/admissions` | `{ "player": Identity }`                           | `{ "decision": "allow" }` ou `deny` + `reason` |
+| `POST /v1/server/events`     | `{ "type": "join" \| "quit", "player": Identity }` | `{ "ok": true }`                               |
+| `POST /v1/server/heartbeat`  | `{ "players": Identity[] }`                        | confirmação; a API reconcilia a presença       |
 
 `Identity` = `{ platform: "java" | "bedrock", uuid, name }`. O UUID é normalizado (minúsculas, com hífens). No Bedrock vale o UUID e o nome com prefixo gerados pelo Floodgate.
 
 Motivos de recusa (`reason`): `SERVER_FULL`, `IN_QUEUE`, `NOT_ALLOWED`. A mensagem em PT-BR vem pronta da API.
+
+Rotas do site (sem autenticação do jogador por enquanto): `POST /v1/queue/join`, `POST /v1/queue/leave` (corpo `{ "player": Identity }`) e `GET /v1/queue/status?uuid=...`. Também `GET /health`.
+
+**Atenção:** como não há vínculo seguro entre o site e a conta Minecraft, qualquer pessoa que saiba um UUID pode colocá-lo na fila. Isso precisa ser resolvido (decisão em aberto da #25) antes de expor essas rotas na internet. Também falta limite de pedidos contra spam.
+
+## Execução da API
+
+`apps/api` usa Fastify e `node:sqlite` (sem dependência nativa; funciona também no Termux). Variáveis (modelo em `apps/api/.env.example`): `MC_API_SECRET` (obrigatória, mínimo 16 caracteres), `MC_API_HOST` (padrão `127.0.0.1`), `MC_API_PORT` (padrão `8787`) e `MC_API_DB` (padrão `./data/api.sqlite`). Depois de `pnpm build`: `pnpm --filter @mc-platform/api start`. O módulo `node:sqlite` ainda é experimental no Node e imprime um aviso.
 
 ## Autenticação
 
@@ -36,4 +45,4 @@ Cabeçalhos `x-mc-timestamp` (milissegundos) e `x-mc-signature` (HMAC-SHA256 hex
 
 ## Pendente
 
-Persistência em SQLite e rotas (`apps/api`), plugin Paper (Java 25, Gradle), integração real Java e Bedrock. Decisões em aberto na issue #25: como vincular o nome Java/gamertag à reserva no site e SSE vs WebSocket.
+Plugin Paper (Java 25, Gradle), integração real Java e Bedrock. Decisões em aberto na issue #25: como vincular o nome Java/gamertag à reserva no site e SSE vs WebSocket.
