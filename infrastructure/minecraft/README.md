@@ -11,7 +11,7 @@ infrastructure/docker/minecraft/
 └── .gitkeep            # (placeholder)
 ```
 
-O `docker-compose.yml` fica em `infrastructure/docker/docker-compose.yml`.
+O `docker-compose.yml`, o `.env.example` e `scripts/init-data.sh` ficam em `infrastructure/docker/`.
 
 ## Componentes
 
@@ -22,27 +22,27 @@ O `docker-compose.yml` fica em `infrastructure/docker/docker-compose.yml`.
 - **Paper 26.3 (build 255):** baixado do repositório oficial `fill-data.papermc.io` com URL fixa e reproduzível:
   `https://fill-data.papermc.io/v1/objects/a7116085a8ba88cf00771d5e61a2925007942092650811da7327dc23243f0cec/paper-26.3-255.jar`
   - Validado: HTTP 200, ~55 MB.
-- **Diretório de plugins:** `/server/plugins` criado vazio na imagem; preenchido em runtime pelo `entrypoint.sh`.
+- **Diretório de dados:** `/server/data` criado vazio na imagem (ponto de montagem); preenchido em runtime pelo Paper e pelo `entrypoint.sh`.
 - **Entrypoint:** copia `entrypoint.sh` para `/server/entrypoint.sh`, dá permissão de execução e define como `ENTRYPOINT`.
 - **Portas expostas (documentação):** `25565/tcp` (Java) e `19132/udp` (Bedrock).
 - **EULA:** NÃO é aceita automaticamente na imagem. O arquivo `eula.txt` não é criado no build; a aceitação é feita pelo usuário/controller antes do startup.
 
 ### entrypoint.sh
 
-Responsabilidades em ordem:
+Responsabilidades em ordem (diretório de trabalho: `/server/data`):
 
-1. **Garantir plugins Geyser/Floodgate em `/server/plugins`:**
+1. **Garantir plugins Geyser/Floodgate em `plugins/`:**
    - Baixa `geyser.jar` (Spigot/Paper) de `https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot` apenas se o arquivo não existir no volume persistente.
    - Baixa `floodgate.jar` (Spigot/Paper) de `https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot` apenas se o arquivo não existir.
    - Os JARs persistem no volume `./data/plugins` entre reinicializações.
 
 2. **Validar EULA:**
-   - Verifica existência de `/server/eula.txt` com conteúdo `eula=true`.
-   - Se não existir ou estiver `eula=false`, exibe mensagem orientando o usuário a aceitar a EULA (após ler em https://www.microsoft.com/en-us/licensing/faq/minecraft) e **sai com código 1**.
+   - Cria `eula.txt` com `eula=false` se não existir; nunca sobrescreve um arquivo existente.
+   - Exige `eula=true` (tolera final de linha CRLF). Caso contrário, exibe orientação (EULA oficial: https://www.minecraft.net/eula) e **sai com código 1**.
    - Aceitação automática desativada por conformidade com a Minecraft EULA.
 
 3. **Iniciar Paper:**
-   - Comando: `java -Xmx2G -jar /server/paper.jar nogui`.
+   - Comando: `java -Xms$MC_JAVA_HEAP -Xmx$MC_JAVA_HEAP $MC_JAVA_OPTS -jar /server/paper.jar nogui` (heap padrão `2G`).
 
 ### docker-compose.yml (em `infrastructure/docker/`)
 
@@ -50,17 +50,12 @@ Serviço `papermc`:
 - **Build:** context `./minecraft`, dockerfile `Dockerfile`.
 - **Container name:** `minecraft-paper`.
 - **Working dir:** `/server`.
-- **Restart:** `unless-stopped`.
-- **Memory limit:** `2g`.
+- **Restart:** `"no"` (início/parada decididos pelo usuário/Controller; evita loop quando a EULA não foi aceita).
+- **Memory limit:** `MC_MEMORY_LIMIT` (padrão `3g`); **heap da JVM:** `MC_JAVA_HEAP` (padrão `2G`) — o heap deve ficar abaixo do limite.
 - **Portas (loopback only):**
   - `127.0.0.1:25565:25565/tcp` (Java Edition).
   - `127.0.0.1:19132:19132/udp` (Bedrock Edition).
-- **Volumes (bind mounts para persistência, sem ocultar arquivos da imagem):**
-  - `./data/world:/server/world` — mundo do Minecraft.
-  - `./data/plugins:/server/plugins` — Geyser/Floodgate + plugins do usuário. Pasta vazia preserva JARs da imagem.
-  - `./data/config:/server/config` — `server.properties`, `whitelist.json`, etc. Separado para não cobrir `paper.jar` nem plugins da imagem.
-  - `./data/config/eula.txt:/server/eula.txt` — EULA gerenciada pelo usuário/controller. Inicial com `eula=false`. O entrypoint valida e sai se não for `eula=true`.
-  - `./data/logs:/server/logs` — logs do servidor.
+- **Volume único:** `./data:/server/data` — mundo (todas as dimensões), plugins, `config/` do Paper, logs, `server.properties`, `whitelist.json`, `ops.json`, `bukkit.yml`, `spigot.yml` e `eula.txt`. O `paper.jar` fica na imagem e nunca é coberto.
 - **Rede:** bridge `minecraft_net`.
 
 ## Como usar (Fase 1)
@@ -68,6 +63,9 @@ Serviço `papermc`:
 No workspace do projeto:
 
 ```bash
+# Preparar ./data (cria data/eula.txt com eula=false; idempotente)
+sh infrastructure/docker/scripts/init-data.sh
+
 # Construir a imagem
 docker compose -f infrastructure/docker/docker-compose.yml build
 
@@ -75,26 +73,28 @@ docker compose -f infrastructure/docker/docker-compose.yml build
 docker compose -f infrastructure/docker/docker-compose.yml up
 ```
 
-**Importante:** Na primeira execução, o `entrypoint.sh` baixará Geyser e Floodgate. O servidor **não iniciará** até que a EULA seja aceita. O arquivo `infrastructure/docker/data/config/eula.txt` é montado em `/server/eula.txt`. Para aceitar:
+**Importante:** Na primeira execução, o `entrypoint.sh` baixará Geyser e Floodgate. O servidor **não iniciará** até que a EULA seja aceita em `infrastructure/docker/data/eula.txt`:
 
 ```bash
-# Editar o arquivo no host (já montado no container):
-echo 'eula=true' > infrastructure/docker/data/config/eula.txt
+# Depois de ler https://www.minecraft.net/eula e concordar:
+echo 'eula=true' > infrastructure/docker/data/eula.txt
 # Depois: docker compose up
 ```
 
-> **Não** aceite a EULA automaticamente. Leia primeiro em https://www.microsoft.com/en-us/licensing/faq/minecraft.
+> **Não** aceite a EULA automaticamente. Leia primeiro em https://www.minecraft.net/eula.
 
 ## Persistência
 
-Dados mantidos em `infrastructure/docker/data/` (host):
+Tudo fica em `infrastructure/docker/data/` (host), montado em `/server/data`:
 
-- `data/world/` — arquivos do mundo (Java + gerado pelo Geyser).
-- `data/plugins/` — `geyser.jar`, `floodgate.jar` e plugins adicionados pelo usuário.
-- `data/config/` — `server.properties`, `whitelist.json`, `bukkit.yml`, `spigot.yml`, `paper.yml`, **`eula.txt`**.
-- `data/logs/` — saída do servidor (`latest.log`, etc.).
+- `world*/` — arquivos do mundo e das demais dimensões, conforme a versão do Paper (confirmar após o primeiro startup real).
+- `plugins/` — `geyser.jar`, `floodgate.jar` e plugins adicionados pelo usuário.
+- `config/` — configurações do Paper (`paper-global.yml` etc.).
+- `server.properties`, `whitelist.json`, `ops.json`, `bukkit.yml`, `spigot.yml` — gerados pelo servidor na raiz de `data/`.
+- `logs/` — saída do servidor (`latest.log`, etc.).
+- **`eula.txt`** — criado com `eula=false`; o usuário/controller altera para `eula=true` após ler a EULA oficial.
 
-O `eula.txt` é montado em `/server/eula.txt` via `./data/config/eula.txt:/server/eula.txt`. Inicial com `eula=false`. O usuário/controller deve alterar para `eula=true` após ler a EULA oficial.
+> A lista acima descreve o comportamento esperado do Paper; os arquivos exatos gerados pela versão 26.3 ainda precisam ser verificados no primeiro startup real (item pendente da Fase 1).
 
 ## Segurança e Conformidade
 
@@ -102,7 +102,7 @@ O `eula.txt` é montado em `/server/eula.txt` via `./data/config/eula.txt:/serve
 - Não expor Docker socket, console administrativo ou API de controle à internet.
 - EULA **não** aceita automaticamente. O usuário/controller deve concordar explicitamente após ler a EULA oficial.
 - Repositórios de plugins (GeyserMC, Floodgate) são públicos e verificados; sem secrets.
-- Credenciais via variáveis de ambiente no host (ex: `.env.local` no Docker Desktop), nunca no Git.
+- Credenciais via variáveis de ambiente no host (`.env` local, ignorado pelo Git), nunca no Git.
 
 ## Teste de startup (após EULA aceita)
 
@@ -153,9 +153,9 @@ Validação contra:
 
 - [x] Dockerfile com Paper 26.3 + Java 25.
 - [x] entrypoint.sh com download condicional de Geyser/Floodgate e validação de EULA.
-- [x] docker-compose.yml com volumes redesenhados (não ocultam paper.jar nem plugins da imagem) e portas em loopback.
+- [x] docker-compose.yml com volume único `./data:/server/data` (não oculta `paper.jar`), portas em loopback, sem restart automático e memória configurável.
 - [x] Documentar portas TCP (Java) e UDP (Bedrock) separadamente.
-- [x] Persistir `eula.txt` via bind mount `./data/config/eula.txt:/server/eula.txt` (inicial `eula=false`).
+- [x] Persistir `eula.txt` dentro do volume (`data/eula.txt`, inicial `eula=false`, criado pelo entrypoint/`init-data.sh`).
 - [ ] Validar startup real com EULA aceita.
 - [ ] Testar conexão Java (TCP) com cliente Minecraft Java Edition.
 - [ ] Testar conexão Bedrock (UDP) com cliente Minecraft Bedrock.

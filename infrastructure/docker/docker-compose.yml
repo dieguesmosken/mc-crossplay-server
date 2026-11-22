@@ -1,11 +1,18 @@
 # docker-compose.yml para o runtime Minecraft (Paper + GeyserMC + Floodgate)
-# Ambiente local-first, preserva mundo, plugins e configs em volumes persistentes.
+# Ambiente local-first; preserva mundo, plugins e configs em um único volume persistente.
 #
-# Montagens de volume foram redesenhadas para NÃO ocultar arquivos da imagem:
-#   - /server/paper.jar (JAR executável) nunca é coberto por volume.
-#   - /server/plugins/geyser.jar e floodgate.jar (incluídos na imagem) só são
-#     sobrescritos se o volume local tiver arquivos; pastas vazias preservam a imagem.
-#   - /server/eula.txt e server.properties são geridos pelo controller/API, não pelo build.
+# Persistência: ./data (host) → /server/data (container), que é o diretório de trabalho
+# do Paper. Tudo que o servidor gera fica ali: world*, plugins/, config/, logs/,
+# server.properties, whitelist.json, ops.json, bukkit.yml, spigot.yml e eula.txt.
+# O /server/paper.jar fica na imagem e nunca é coberto por volume.
+#
+# Antes do primeiro uso, rode: ./scripts/init-data.sh (cria ./data com o seu usuário).
+#
+# Variáveis opcionais (veja .env.example):
+#   MC_MEMORY_LIMIT  limite de memória do container. Padrão: 3g.
+#   MC_JAVA_HEAP     heap da JVM. Padrão: 2G (precisa ficar abaixo do limite do container).
+#   MC_JAVA_OPTS     flags extras da JVM.
+#
 # Portas vinculadas a 127.0.0.1 (local-only) por padrão; libere 0.0.0.0 se precisar
 # de acesso externo, com documentação e firewall correspondentes.
 
@@ -17,27 +24,21 @@ services:
       dockerfile: Dockerfile
     container_name: minecraft-paper
     working_dir: /server
-    restart: unless-stopped
-    mem_limit: 2g
+    # Sem restart automático: o início/parada é decisão do usuário/Controller.
+    # Com "unless-stopped", a saída com código 1 por EULA não aceita viraria loop infinito.
+    restart: "no"
+    mem_limit: ${MC_MEMORY_LIMIT:-3g}
+    environment:
+      MC_JAVA_HEAP: ${MC_JAVA_HEAP:-2G}
+      MC_JAVA_OPTS: ${MC_JAVA_OPTS:-}
     # Portas mapeadas apenas para loopback (127.0.0.1) em uso local.
     # Java usa TCP; Bedrock usa UDP.
     ports:
       - "127.0.0.1:25565:25565/tcp"
       - "127.0.0.1:19132:19132/udp"
     volumes:
-      # Mundo: persiste apenas o mundo gerado. Nunca cubra /server.
-      - ./data/world:/server/world
-      # Plugins: pasta vazia preserva os JARs da imagem (Geyser/Floodgate).
-      # Se adicionar plugins manualmente, coloque em ./data/plugins.
-      - ./data/plugins:/server/plugins
-      # Configurações do servidor (server.properties, whitelist.json, etc.).
-      # Caminho separado para não ocultar paper.jar, eula.txt nem os plugins da imagem.
-      - ./data/config:/server/config
-      # EULA: arquivo gerenciado pelo usuário/controller. Inicial com eula=false.
-      # O entrypoint verifica /server/eula.txt e sai com código 1 se não for "eula=true".
-      - ./data/config/eula.txt:/server/eula.txt
-      # Logs do servidor.
-      - ./data/logs:/server/logs
+      # Único volume persistente: mundo, plugins, configs, logs e EULA.
+      - ./data:/server/data
     networks:
       - minecraft_net
 

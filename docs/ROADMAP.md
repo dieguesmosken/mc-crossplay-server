@@ -17,14 +17,14 @@
 - [x] entrypoint.sh com download condicional de GeyserMC/Floodgate (Spigot/Paper latest) e validação de EULA.
 - [x] docker-compose.yml com volumes redesenhados (não ocultam paper.jar nem plugins da imagem), portas em loopback (127.0.0.1), TCP para Java e UDP para Bedrock.
 - [x] Persistência de mundo, plugins, configs, logs e EULA em `./data/`.
-- [x] EULA NÃO aceita automaticamente — arquivo `./data/config/eula.txt` montado em `/server/eula.txt` com `eula=false` inicial.
+- [x] EULA NÃO aceita automaticamente — `./data/eula.txt` (dentro do volume único `./data:/server/data`) criado com `eula=false`.
 
 **Testado:**
 - [x] `docker compose config` — sintaxe válida (apenas warning de `version` obsoleto, removido).
 - [x] `docker compose build` — build bem-sucedido, imagem `docker-papermc:latest` criada.
 
 **Pendente (requer ação do usuário / cliente Minecraft):**
-- [ ] Aceitar EULA manualmente (`echo 'eula=true' > infrastructure/docker/data/config/eula.txt` após ler a EULA oficial).
+- [ ] Aceitar EULA manualmente (`echo 'eula=true' > infrastructure/docker/data/eula.txt` após ler a EULA oficial).
 - [ ] Validar startup real com EULA aceita (container inicia e Paper carrega).
 - [ ] Testar conexão Java (TCP 25565) com cliente Minecraft Java Edition.
 - [ ] Testar conexão Bedrock (UDP 19132) com cliente Minecraft Bedrock.

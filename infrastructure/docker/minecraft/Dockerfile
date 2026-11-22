@@ -6,13 +6,13 @@
 #
 # Arquitetura de volumes (evita ocultar arquivos da imagem):
 #   - /server/paper.jar  → está na imagem, NUNCA é coberto por volume.
-#   - /server/plugins    → bind-mount para ./data/plugins. A imagem NÃO coloca
-#     nada aqui; os plugins (Geyser/Floodgate e plugins do usuário) são baixados
-#     na primeira inicialização pelo entrypoint.sh e persistem no volume.
-#   - /server/config     → bind-mount para ./data/config (server.properties etc.).
-#   - /server/world, /server/logs → bind-mounts para persistência de dados.
-#   - /server/eula.txt  → NÃO é montado. Paper cria/exibe em cada inicialização;
-#     a aceitação é desativada por padrão (conformidade com a EULA).
+#   - /server/data       → ÚNICO volume persistente (bind mount de ./data) e diretório
+#     de trabalho do Paper: world*, plugins/, config/, logs/, server.properties,
+#     whitelist.json, ops.json, bukkit.yml, spigot.yml e eula.txt. A imagem não coloca
+#     nada aqui; os plugins (Geyser/Floodgate) são baixados na primeira inicialização
+#     pelo entrypoint.sh e persistem no volume.
+#   - eula.txt           → criado pelo entrypoint com eula=false se não existir; a
+#     aceitação NUNCA é automática (conformidade com a EULA).
 FROM eclipse-temurin:25-jdk-alpine
 
 LABEL maintainer="mc-crossplay-server"
@@ -23,8 +23,8 @@ WORKDIR /server
 # Instalar curl, wget e bash
 RUN apk add --no-cache curl wget bash
 
-# Criar pasta de plugins (vazia na imagem; preenchida em runtime pelo entrypoint)
-RUN mkdir -p /server/plugins
+# Diretório de dados (ponto de montagem do volume; preenchido em runtime pelo Paper/entrypoint)
+RUN mkdir -p /server/data
 
 # Baixar o jar do Paper 26.3 (build 255) a partir do repositório oficial
 # fill-data.papermc.io. URL fixa e reproduzível; validada com HTTP 200 (55.296.784 bytes).
@@ -35,7 +35,7 @@ RUN curl -L -f -o /server/paper.jar \
 COPY entrypoint.sh /server/entrypoint.sh
 RUN chmod +x /server/entrypoint.sh
 
-# Comando de entrada. O mundo, plugins e configs são montados via volumes no docker-compose.yml.
+# Comando de entrada. O diretório de dados é montado como volume no docker-compose.yml.
 ENTRYPOINT ["/server/entrypoint.sh"]
 
 EXPOSE 25565/tcp 19132/udp
