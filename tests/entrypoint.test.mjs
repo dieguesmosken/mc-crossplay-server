@@ -41,16 +41,26 @@ echo "fake-jar" > "$out"
   return { root, bin, data };
 }
 
+// Herda o ambiente do sistema (funciona em Linux comum e no Termux, que não tem /usr/bin),
+// mas descarta qualquer MC_* já exportado para não contaminar os testes.
+function baseEnv(extra = {}) {
+  const env = { ...process.env };
+  for (const key of Object.keys(env)) {
+    if (key.startsWith('MC_')) delete env[key];
+  }
+  return { ...env, ...extra };
+}
+
 function runEntrypoint(sandbox, env = {}) {
   return spawnSync('sh', [ENTRYPOINT], {
     encoding: 'utf8',
-    env: {
-      PATH: `${sandbox.bin}:/usr/bin:/bin`,
+    env: baseEnv({
+      PATH: `${sandbox.bin}:${process.env.PATH}`,
       MC_SERVER_ROOT: sandbox.root,
       MC_DATA_DIR: sandbox.data,
       MC_PAPER_JAR: path.join(sandbox.root, 'paper.jar'),
       ...env,
-    },
+    }),
   });
 }
 
@@ -152,7 +162,7 @@ test('init-data.sh creates eula=false once and never overwrites an existing deci
   const root = await mkdtemp(path.join(tmpdir(), 'mc-init-'));
   const data = path.join(root, 'data');
   try {
-    const env = { PATH: '/usr/bin:/bin', MC_DATA_DIR: data };
+    const env = baseEnv({ MC_DATA_DIR: data });
 
     const first = spawnSync('sh', [INIT_DATA], { encoding: 'utf8', env });
     assert.equal(first.status, 0);
