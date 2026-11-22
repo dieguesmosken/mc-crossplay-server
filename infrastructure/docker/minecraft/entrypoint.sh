@@ -62,11 +62,12 @@ if ! tr -d '\r' < "${EULA_FILE}" | grep -qx "eula=true"; then
     echo " EULA não aceita. O servidor não pode iniciar."
     echo "=============================================="
     echo "Leia a Minecraft EULA em https://www.minecraft.net/eula e, se concordar,"
-    echo "defina eula=true no arquivo data/eula.txt (no host):"
+    echo "defina eula=true neste arquivo:"
     echo ""
-    echo "  echo 'eula=true' > infrastructure/docker/data/eula.txt"
+    echo "  ${EULA_FILE}"
     echo ""
-    echo "Depois inicie o container novamente."
+    echo "No Docker, ele fica em infrastructure/docker/data/eula.txt no host."
+    echo "Depois inicie o servidor novamente."
     echo "=============================================="
     exit 1
 fi
