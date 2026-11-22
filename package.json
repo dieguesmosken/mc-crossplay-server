@@ -10,12 +10,13 @@
   "scripts": {
     "lint": "eslint .",
     "typecheck": "pnpm --recursive --if-present typecheck",
-    "test": "pnpm --filter @mc-platform/shared build && node --test",
+    "test": "pnpm build && node --test",
     "build": "pnpm --recursive --if-present build",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "devDependencies": {
+    "@types/node": "26.6.6",
     "eslint": "10.15.0",
     "prettier": "3.10.1",
     "typescript": "7.0.2"

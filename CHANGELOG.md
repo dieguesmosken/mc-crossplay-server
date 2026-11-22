@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Adicionado (issue #25) — contrato do plugin e lógica da fila
+- `packages/shared`: identidade de jogador (Java/Bedrock, UUID normalizado), validação de `AdmissionRequest` e `Heartbeat`, respostas `allow`/`deny` com mensagens em PT-BR e assinatura HMAC-SHA256 com janela de tempo.
+- `packages/queue`: `PlayerQueue` (lógica pura e em memória): limite de 10 jogadores, fila FIFO, reservas com prazo, reconciliação por heartbeat e relógio injetável.
+- `docs/PLUGIN_CONTRACT.md` descreve o fluxo, as rotas planejadas e as regras.
+- Testes: `tests/contract.test.mjs` e `tests/queue.test.mjs` (19 novos; total no repositório: 39 com `node --test`, após `pnpm build`). `eslint` e `tsc --noEmit` sem erros. Executado no sandbox com Node 22 (o projeto fixa Node 26); **não executado:** Termux, Node 26, API e plugin (ainda não existem).
+- Dependências de desenvolvimento: `@types/node` (fixado); `tsconfig` do `shared` passa a declarar `types: ["node"]` (TypeScript 7 não carrega tipos automaticamente).
+
 ### Adicionado (issue #21) — ambientes Linux, WSL2 e Termux
 - `scripts/dev/doctor.sh`: detecta a plataforma (Linux/WSL/Termux), confere Java 25+, curl, Node e Docker, avisa sobre repositório em `/mnt/c` no WSL e sugere `MC_JAVA_HEAP`.
 - `scripts/dev/run-local.sh`: roda o Paper real sem Docker usando o mesmo `entrypoint.sh` (URL do Paper lida do Dockerfile; EULA nunca aceita automaticamente).
