@@ -164,4 +164,11 @@ Autor: Claude (sessão de continuidade). Branch de trabalho: `feat/plugin-paper`
 
 ---
 
+## 2026-11-22T18:57:21-03:00 [America/Sao_Paulo] — Resultado do CI do PR #30 (plugin Paper)
+
+- Workflow `Plugin Paper` concluído com sucesso (Temurin 25.0.5, Gradle 9.1.0): `:core:check` com 36/36 testes e `:paper:build` gerando o jar. Corrige a entrada anterior, que listava a compilação contra o `paper-api` real e o próprio CI como não validados.
+- **Continua não validado:** carregar o plugin num Paper 26.3 real, Floodgate/Bedrock, `isOp()/isWhitelisted()` fora da thread principal, etapa 5.
+
+---
+
 *Este documento será mantido como canal de comunicação oficial entre a equipe de desenvolvimento e o modelo ChatGPT.*

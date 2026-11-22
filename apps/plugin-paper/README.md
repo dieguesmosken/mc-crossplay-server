@@ -30,12 +30,12 @@ O núcleo não usa JUnit: os testes são classes simples (`core/src/test`), exec
 
 ```sh
 cd apps/plugin-paper
-gradle :core:check                      # Java 25 (padrão): núcleo compila e 36 testes rodam
+gradle :core:check                      # Java 25 (padrão): núcleo compila e 36 testes rodam (validado no CI)
 gradle -PjavaRelease=21 :core:check     # em JDK 21 (por exemplo, para validar sem o 25)
-gradle :paper:build                     # exige acesso ao repo.papermc.io (paper-api); gera o jar
+gradle :paper:build                     # exige acesso ao repo.papermc.io (paper-api); gera o jar (validado no CI)
 ```
 
-Gradle 9.1+ é necessário para rodar em Java 25. Não há wrapper commitado ainda.
+Gradle 9.1+ é necessário para rodar em Java 25 (o CI usa 9.1.0). Não há wrapper commitado ainda.
 
 ### Teste de integração com a API real
 
@@ -59,12 +59,17 @@ Sem as duas propriedades `-Dmc.e2e.*` o teste é ignorado.
 3. Suba o servidor uma vez para gerar `plugins/McPlatform/config.yml`; ajuste `api-url` e a política de falha.
 4. O Floodgate é `softdepend`: o plugin carrega sem ele, mas sem o Floodgate a identificação do Bedrock cai numa heurística de UUID.
 
+## Validação
+
+Validado no CI (PR #30, workflow `Plugin Paper`: Temurin 25.0.5, Gradle 9.1.0):
+
+- `gradle :core:check`: 36 testes do núcleo passam em Java 25.
+- `gradle :paper:build`: o adaptador **compila contra o `paper-api` real** e gera o jar (`mc-platform-plugin`, artefato do CI).
+
 ## O que ainda não foi validado
 
-- **O adaptador `paper/` nunca foi compilado contra o `paper-api` real.** Foi checado apenas contra stubs mínimos escritos por mim, que refletem o que assumi do Paper (por exemplo, `AsyncPlayerPreLoginEvent#disallow(Result, Component)`), não o Paper de verdade.
-- A coordenada `io.papermc.paper:paper-api:26.3.build.+` vem da documentação do Paper e está com versão dinâmica (`+`); precisa ser fixada na primeira resolução no CI.
-- `api-version: '26.3'` no `plugin.yml` e o carregamento do plugin num Paper 26.3 real.
+- **Carregar o jar num Paper 26.3 real:** compilar não prova que o plugin sobe, que o `plugin.yml` (`api-version: '26.3'`) é aceito nem que os eventos disparam.
+- A coordenada `io.papermc.paper:paper-api:26.3.build.+` resolveu no CI, mas segue com versão dinâmica (`+`); precisa ser fixada.
 - Floodgate por reflexão (`FloodgateApi.getInstance()` / `isFloodgatePlayer`) e a heurística de UUID.
 - `Bukkit.getOfflinePlayer(uuid).isOp()/isWhitelisted()` chamados fora da thread principal (no pré-login).
-- CI em Java 25 / Gradle 9.1.0 (workflow `.github/workflows/plugin-paper.yml` nunca executou).
 - Etapa 5: entrada real por Java e por Bedrock, vaga liberada ao sair, reserva expirando.

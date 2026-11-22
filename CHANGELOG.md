@@ -8,8 +8,9 @@
 - `local-bypass.whitelist` vem **desligado** por padrão: quem está no bypass entra fora da fila e do limite de 10 (decisão minha, ainda não aprovada na issue).
 - CI: `.github/workflows/plugin-paper.yml` (Java 25, Gradle 9.1.0), que roda em PRs que mexem em `apps/plugin-paper`.
 - Testes: 36 testes do núcleo (`gradle --offline -PjavaRelease=21 :core:check`, JDK 21) e 7 de integração do núcleo contra a API real (`apps/api` em Node 22, banco vazio): assinatura HMAC aceita, 11º jogador negado com `SERVER_FULL`, `quit` libera vaga, join idempotente, heartbeat reconcilia. Vetor de assinatura gerado pelo `signRequest` de `packages/shared`.
-- **Não executado:** compilação do adaptador `paper` contra o `paper-api` real (só checado contra stubs escritos por mim); carregamento num Paper 26.3; Floodgate/Bedrock; `isOp()/isWhitelisted()` fora da thread principal; o workflow de CI; Java 25 (testes só em JDK 21); etapa 5 (entrada real Java/Bedrock).
-- Limitações: a dependência `paper-api:26.3.build.+` está com versão dinâmica e precisa ser fixada; `MC_API_SECRET` ainda não é repassada ao container no `docker-compose.yml`; não há wrapper Gradle commitado.
+- CI do PR #30 (Temurin 25.0.5, Gradle 9.1.0): `gradle :core:check` com 36/36 testes e `gradle :paper:build` com o adaptador compilando contra o `paper-api` real, jar gerado.
+- **Não executado:** carregar o jar num Paper 26.3 real (`api-version: '26.3'`); Floodgate/Bedrock; `isOp()/isWhitelisted()` fora da thread principal; etapa 5 (entrada real Java/Bedrock).
+- Limitações: a dependência `paper-api:26.3.build.+` resolveu no CI mas segue com versão dinâmica e precisa ser fixada; `MC_API_SECRET` ainda não é repassada ao container no `docker-compose.yml`; não há wrapper Gradle commitado.
 
 ### Adicionado (issue #25) — API da fila (`apps/api`)
 - Fastify + `node:sqlite`: rotas `/v1/server/admissions`, `/v1/server/events` e `/v1/server/heartbeat` (assinadas por HMAC), `/v1/queue/join|leave|status` (site, ainda sem autenticação do jogador) e `/health`. Estado da fila persistido em SQLite e restaurado ao reiniciar.

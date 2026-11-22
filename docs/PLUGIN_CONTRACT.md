@@ -1,6 +1,6 @@
 # Contrato entre plugin Paper, API e fila (issue #25)
 
-Estado: **contrato, lógica da fila, API e núcleo do plugin implementados e testados**. O adaptador Paper está escrito mas **nunca foi compilado contra o `paper-api` real** (veja `apps/plugin-paper/README.md`).
+Estado: **contrato, lógica da fila, API e núcleo do plugin implementados e testados**. O adaptador Paper **compila no CI contra o `paper-api` real** (Java 25), mas **ainda não foi carregado num Paper real** (veja `apps/plugin-paper/README.md`).
 
 ## Fluxo
 
@@ -50,4 +50,4 @@ Java 25 + Gradle, em dois módulos: `core` (sem Bukkit e sem dependências: regr
 
 ## Pendente
 
-Compilar e testar o adaptador Paper com o `paper-api` real (CI ou Linux/WSL com Java 25), e a integração real Java e Bedrock (etapa 5). Decisões em aberto na issue #25: como vincular o nome Java/gamertag à reserva no site e SSE vs WebSocket.
+Carregar o plugin num Paper real e a integração real Java e Bedrock (etapa 5). Decisões em aberto na issue #25: como vincular o nome Java/gamertag à reserva no site e SSE vs WebSocket.
