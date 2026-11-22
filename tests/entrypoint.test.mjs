@@ -190,3 +190,35 @@ test('docker-compose keeps a single data volume, no restart loop and a configura
   assert.match(compose, /mem_limit: \$\{MC_MEMORY_LIMIT:-3g\}/);
   assert.match(compose, /MC_JAVA_HEAP: \$\{MC_JAVA_HEAP:-2G\}/);
 });
+
+test('docker-compose publishes Java and Bedrock ports on MC_BIND_ADDRESS, loopback by default', async () => {
+  const compose = await readFile(
+    new URL('../infrastructure/docker/docker-compose.yml', import.meta.url),
+    'utf8',
+  );
+  const bind = '\\$\\{MC_BIND_ADDRESS:-127\\.0\\.0\\.1\\}';
+
+  // Java (TCP) e Bedrock (UDP + TCP da sinalização do NetherNet, issue #23).
+  assert.match(compose, new RegExp(`- "${bind}:25565:25565/tcp"`));
+  assert.match(compose, new RegExp(`- "${bind}:19132:19132/udp"`));
+  assert.match(compose, new RegExp(`- "${bind}:19132:19132/tcp"`));
+
+  // Nenhuma porta publicada fora do padrão seguro: toda entrada de "ports" usa a variável.
+  const published = compose.match(/^\s*- "[^"]*:\d+:\d+\/(?:tcp|udp)"/gm) ?? [];
+  assert.equal(published.length, 3);
+  for (const line of published) assert.match(line, new RegExp(bind));
+  assert.doesNotMatch(compose, /"0\.0\.0\.0:/);
+});
+
+test('.env.example keeps MC_BIND_ADDRESS on loopback and warns about the LAN exposure', async () => {
+  const example = await readFile(
+    new URL('../infrastructure/docker/.env.example', import.meta.url),
+    'utf8',
+  );
+
+  // Exatamente uma definição ativa, no padrão seguro.
+  const active = example.match(/^MC_BIND_ADDRESS=.*$/gm) ?? [];
+  assert.deepEqual(active, ['MC_BIND_ADDRESS=127.0.0.1']);
+  // O aviso sobre ufw e LAN precisa continuar ao lado da variável.
+  assert.match(example, /Docker ignora as regras do ufw/);
+});

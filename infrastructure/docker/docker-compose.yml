@@ -12,9 +12,10 @@
 #   MC_MEMORY_LIMIT  limite de memória do container. Padrão: 3g.
 #   MC_JAVA_HEAP     heap da JVM. Padrão: 2G (precisa ficar abaixo do limite do container).
 #   MC_JAVA_OPTS     flags extras da JVM.
-#
-# Portas vinculadas a 127.0.0.1 (local-only) por padrão; libere 0.0.0.0 se precisar
-# de acesso externo, com documentação e firewall correspondentes.
+#   MC_BIND_ADDRESS  endereço do host em que as portas são publicadas. Padrão: 127.0.0.1
+#                    (só este computador). Para testar na rede local use o IP da LAN do
+#                    computador ou 0.0.0.0. ATENÇÃO: o Docker ignora o ufw; qualquer valor
+#                    diferente de 127.0.0.1 abre as portas para a LAN (veja o README).
 
 services:
   papermc:
@@ -31,11 +32,13 @@ services:
     environment:
       MC_JAVA_HEAP: ${MC_JAVA_HEAP:-2G}
       MC_JAVA_OPTS: ${MC_JAVA_OPTS:-}
-    # Portas mapeadas apenas para loopback (127.0.0.1) em uso local.
-    # Java usa TCP; Bedrock usa UDP.
+    # Portas publicadas em MC_BIND_ADDRESS (padrão: loopback, uso local).
+    # Java usa TCP (25565). Bedrock usa UDP (19132) e, com NetherNet (Bedrock 26.60+),
+    # também TCP 19132 para a sinalização (issue #23).
     ports:
-      - "127.0.0.1:25565:25565/tcp"
-      - "127.0.0.1:19132:19132/udp"
+      - "${MC_BIND_ADDRESS:-127.0.0.1}:25565:25565/tcp"
+      - "${MC_BIND_ADDRESS:-127.0.0.1}:19132:19132/udp"
+      - "${MC_BIND_ADDRESS:-127.0.0.1}:19132:19132/tcp"
     volumes:
       # Único volume persistente: mundo, plugins, configs, logs e EULA.
       - ./data:/server/data

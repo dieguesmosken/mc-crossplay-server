@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Adicionado (issues #12 e #23) — porta configurável para testar o Bedrock na LAN
+- `docker-compose.yml`: as portas passam a ser publicadas em `${MC_BIND_ADDRESS:-127.0.0.1}`. O padrão continua sendo loopback (só o próprio computador). Também publica `19132/tcp`, usada na sinalização do NetherNet (Bedrock 26.60+), além de `25565/tcp` e `19132/udp`.
+- `.env.example`, `infrastructure/docker/README.md` e `docs/DEVELOPMENT_SETUP.md`: variável documentada, com o passo a passo para o celular, o aviso de que **o Docker ignora o `ufw`** (qualquer valor diferente de `127.0.0.1` abre as portas para toda a LAN, com a whitelist do Paper desligada), a recomendação de usar o IP da LAN em vez de `0.0.0.0` e a matriz de testes da #12 (todas as linhas ainda "não validado").
+- Testes: `tests/entrypoint.test.mjs` ganhou 2 testes (portas via `MC_BIND_ADDRESS` com padrão loopback e `19132/tcp` presente; `.env.example` mantém `127.0.0.1` e o aviso). Total com `node --test`: 52/52 (Node 22). Verificado por mutação: reintroduzir a porta fixa, remover `19132/tcp` ou trocar o padrão do `.env.example` para `0.0.0.0` faz os testes reprovarem.
+- `docker compose config` conferido em 4 cenários (padrão, `MC_BIND_ADDRESS=0.0.0.0`, `.env.example` copiado e um IP de LAN): as 3 portas saem com o `host_ip` esperado.
+- **Não executado:** `docker compose up` com a variável, conexão real do celular (Java ou Bedrock), o NetherNet (publicar `19132/tcp` não o liga; a propriedade `-DgeyserTransport=nethernet` vem da documentação do Geyser e não foi testada aqui) e o `auth-type: floodgate` do Geyser.
+- Não incluído (também listado na #12): `MC_JAVA_PORT` e `MC_BEDROCK_PORT`.
+
 ### Adicionado (issue #25) — API da fila (`apps/api`)
 - Fastify + `node:sqlite`: rotas `/v1/server/admissions`, `/v1/server/events` e `/v1/server/heartbeat` (assinadas por HMAC), `/v1/queue/join|leave|status` (site, ainda sem autenticação do jogador) e `/health`. Estado da fila persistido em SQLite e restaurado ao reiniciar.
 - `PlayerQueue` ganhou `statusOf` e `restore`; `shared` ganhou `parseServerEvent`.

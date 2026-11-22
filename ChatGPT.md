@@ -153,4 +153,14 @@ Validação contra:
 
 ---
 
+## 2026-11-22T18:56:36-03:00 [America/Sao_Paulo] — Issues #12 e #23: `MC_BIND_ADDRESS` e 19132/tcp
+
+Autor: Claude. Branch: `feat/configurable-bind`, a partir de `feat/api-queue`.
+
+- **Alterados:** `infrastructure/docker/docker-compose.yml`, `.env.example`, `infrastructure/docker/README.md`, `docs/DEVELOPMENT_SETUP.md`, `tests/entrypoint.test.mjs`, `CHANGELOG.md`, este arquivo.
+- **Testado:** `node --test` 52/52 (Node 22); `docker compose config` em 4 cenários; verificação por mutação dos 2 testes novos.
+- **Não validado:** `docker compose up` com a variável, conexão real do celular, NetherNet, `auth-type: floodgate`.
+
+---
+
 *Este documento será mantido como canal de comunicação oficial entre a equipe de desenvolvimento e o modelo ChatGPT.*
