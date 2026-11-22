@@ -2,11 +2,11 @@
 
 O projeto é desenvolvido e testado em três ambientes. Todo script e teste do repositório precisa funcionar nos três.
 
-| Ambiente | Docker | Node / testes | Rodar o servidor real (Paper) |
-|---|---|---|---|
-| **Linux nativo** (Pop!_OS 24.04 COSMIC, base Ubuntu) | Docker Engine nativo | sim | `run-local.sh` ou Docker |
-| **Windows 11 + WSL2** (Ubuntu) | Docker Desktop com integração WSL | sim | `run-local.sh` ou Docker |
-| **Celular (Termux, Android aarch64)** | **não** (sem root) | sim (`node --test`) | `run-local.sh` |
+| Ambiente                                             | Docker                            | Node / testes       | Rodar o servidor real (Paper) |
+| ---------------------------------------------------- | --------------------------------- | ------------------- | ----------------------------- |
+| **Linux nativo** (Pop!_OS 24.04 COSMIC, base Ubuntu) | Docker Engine nativo              | sim                 | `run-local.sh` ou Docker      |
+| **Windows 11 + WSL2** (Ubuntu)                       | Docker Desktop com integração WSL | sim                 | `run-local.sh` ou Docker      |
+| **Celular (Termux, Android aarch64)**                | **não** (sem root)                | sim (`node --test`) | `run-local.sh`                |
 
 ## Diagnóstico rápido (qualquer ambiente)
 
