@@ -85,7 +85,12 @@ fi
 if command -v node >/dev/null 2>&1; then
     ok "Node $(node --version) (testes: node --test)"
     if [ "${platform}" = "termux" ]; then
-        info "Termux: a versão do Node pode ser anterior à fixada em .nvmrc; use 'node --test' em vez de 'pnpm test' (o pnpm exige o engine fixado)"
+        nvmrc="$(dirname "$0")/../../.nvmrc"
+        wanted="$(tr -d 'v \r\n' < "${nvmrc}" 2>/dev/null)"
+        current="$(node --version | tr -d 'v')"
+        if [ -n "${wanted}" ] && [ "${wanted}" != "${current}" ]; then
+            info "Termux: o Node (${current}) difere do fixado em .nvmrc (${wanted}); use 'node --test' em vez de 'pnpm test' (o pnpm exige o engine fixado)"
+        fi
     fi
 else
     warn "Node não encontrado: os testes automatizados não vão rodar"
