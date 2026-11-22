@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Adicionado (issue #21) — ambientes Linux, WSL2 e Termux
+- `scripts/dev/doctor.sh`: detecta a plataforma (Linux/WSL/Termux), confere Java 25+, curl, Node e Docker, avisa sobre repositório em `/mnt/c` no WSL e sugere `MC_JAVA_HEAP`.
+- `scripts/dev/run-local.sh`: roda o Paper real sem Docker usando o mesmo `entrypoint.sh` (URL do Paper lida do Dockerfile; EULA nunca aceita automaticamente).
+- `.gitattributes` forçando LF em scripts, Dockerfile, YAML, JSON e fontes (evita `.sh` com CRLF no Windows/WSL).
+- Testes portáteis: `tests/dev-scripts.test.mjs` (8 testes) e `tests/entrypoint.test.mjs` agora herdam o `PATH` do sistema (funcionam no Termux).
+- Verificação: `shellcheck`, `dash -n` e `bash --posix -n` sem erros; testes passando com `dash` e com `bash` como `sh`; `doctor.sh` validado contra OpenJDK 25 real. **Não executado:** Termux real e WSL real (simulados por variáveis de ambiente).
+- `docs/DEVELOPMENT_SETUP.md` reescrito com matriz por ambiente.
+
 ### Alterado (issues #6, #7 e #8) — comprovado por testes automatizados, ainda não por startup real
 - Volume único `./data:/server/data` como diretório de trabalho do Paper: passam a persistir `server.properties`, whitelist, ops, `bukkit.yml`, `spigot.yml` e as dimensões do mundo (antes só `world`, `plugins`, `config`, `logs` eram montados). Layout antigo exige migração manual (ver `infrastructure/docker/README.md`).
 - `eula.txt` deixou de ser bind mount de arquivo único (o Docker criava um diretório no lugar dele em clone novo). O entrypoint e `scripts/init-data.sh` criam o arquivo com `eula=false` somente se ausente; a EULA continua sem aceitação automática.

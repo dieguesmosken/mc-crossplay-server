@@ -17,7 +17,7 @@ O navegador não consegue iniciar o cliente Minecraft automaticamente em todos o
 - Backend/API: Node.js + Fastify.
 - Frontend: Next.js.
 - Persistência inicial: SQLite.
-- Ambiente local: Windows 11 + WSL2 Ubuntu 26.04.1 + Docker Desktop.
+- Ambientes de desenvolvimento suportados: Linux nativo (Pop!_OS 24.04), Windows 11 + WSL2 (Docker Desktop) e Termux no celular (sem Docker). Veja `sh scripts/dev/doctor.sh`.
 - Empacotamento: Docker Compose.
 - Hospedagem futura: VPS/EC2 Linux, mantendo a arquitetura independente do provedor.
 
