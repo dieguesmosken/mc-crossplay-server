@@ -153,4 +153,15 @@ Validação contra:
 
 ---
 
+## 2026-11-22T18:39:27-03:00 [America/Sao_Paulo] — Issue #25, etapa 4 (plugin Paper)
+
+Autor: Claude (sessão de continuidade). Branch de trabalho: `feat/plugin-paper`, a partir de `feat/api-queue`.
+
+- **Criado:** `apps/plugin-paper/` (módulos `core` e `paper`), `.github/workflows/plugin-paper.yml`; **alterados:** `docs/PLUGIN_CONTRACT.md`, `CHANGELOG.md`, `.gitignore`, este arquivo.
+- **Testado:** 36 testes do núcleo (JDK 21, via `javac` e via `gradle --offline -PjavaRelease=21 :core:check`); 7 testes de integração do núcleo Java contra a API real `apps/api` (Node 22); `node --test` do repositório: 50/50.
+- **Não validado:** adaptador `paper` contra o `paper-api` real (só stubs); Java 25; CI; Floodgate/Bedrock; Paper 26.3 real; etapa 5.
+- **Não executado:** `scripts/dev/doctor.sh` no Pop!_OS do usuário (a sessão alcança o computador apenas para arquivos, sem shell).
+
+---
+
 *Este documento será mantido como canal de comunicação oficial entre a equipe de desenvolvimento e o modelo ChatGPT.*
