@@ -47,6 +47,7 @@ Responsabilidades em ordem (diretório de trabalho: `/server/data`):
 ### docker-compose.yml (em `infrastructure/docker/`)
 
 Serviço `papermc`:
+
 - **Build:** context `./minecraft`, dockerfile `Dockerfile`.
 - **Container name:** `minecraft-paper`.
 - **Working dir:** `/server`.
@@ -129,16 +130,17 @@ Validação real de conexão Bedrock exige cliente Minecraft Bedrock (Windows 10
 
 ## Combinação de versões validada (2026-11-18)
 
-| Componente | Versão | Fonte |
-|------------|--------|-------|
-| Java       | 25 (Temurin) | `eclipse-temurin:25-jdk-alpine` |
-| Paper      | 26.3 (build 255) | `fill-data.papermc.io` |
-| GeyserMC   | latest (Spigot/Paper) | `download.geysermc.org` |
-| Floodgate  | latest (Spigot/Paper) | `download.geysermc.org` |
+| Componente | Versão                | Fonte                           |
+| ---------- | --------------------- | ------------------------------- |
+| Java       | 25 (Temurin)          | `eclipse-temurin:25-jdk-alpine` |
+| Paper      | 26.3 (build 255)      | `fill-data.papermc.io`          |
+| GeyserMC   | latest (Spigot/Paper) | `download.geysermc.org`         |
+| Floodgate  | latest (Spigot/Paper) | `download.geysermc.org`         |
 
 Validação contra:
+
 - https://docs.papermc.io/paper/getting-started/ → Paper 26.1+ requer Java 25.
-- https://geysermc.org/wiki/geyser/supported-versions/ → Geyser-Spigot requer Paper 1.20.5+ (Paper 26.3 = Minecraft 1.21.4, compatível).
+- https://geysermc.org/wiki/geyser/supported-versions/ → Geyser-Spigot requer Paper 1.20.5+ (Paper 26.3 roda o Minecraft 26.3, segundo o log do Paper: `Loading Paper 26.3-255 … for Minecraft 26.3`).
 - https://papermc.io/downloads/paper → URLs em `fill-data.papermc.io`.
 
 ## Documentação relacionada
@@ -162,4 +164,4 @@ Validação contra:
 
 ---
 
-*Este README reflete a implementação existente em `infrastructure/docker/minecraft/` na data de 2026-11-18.*
+_Este README reflete a implementação existente em `infrastructure/docker/minecraft/` na data de 2026-11-18._
