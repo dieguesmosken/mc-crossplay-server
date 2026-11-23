@@ -232,3 +232,41 @@ test('.env.example keeps MC_BIND_ADDRESS on loopback and warns about the LAN exp
   // O aviso sobre ufw e LAN precisa continuar ao lado da variável.
   assert.match(example, /Docker ignora as regras do ufw/);
 });
+
+test('docker-compose runs the queue API only under the "api" profile, without published ports', async () => {
+  const compose = await readFile(
+    new URL('../infrastructure/docker/docker-compose.yml', import.meta.url),
+    'utf8',
+  );
+  const apiBlock = compose.slice(compose.indexOf('\n  api:\n'), compose.indexOf('\nvolumes:'));
+
+  assert.ok(apiBlock.length > 0, 'api service block not found');
+  assert.match(apiBlock, /profiles: \["api"\]/);
+  assert.match(apiBlock, /MC_API_SECRET: \$\{MC_API_SECRET:-\}/);
+  assert.match(apiBlock, /api_data:\/data/);
+  assert.doesNotMatch(apiBlock, /^\s+ports:/m, 'the API must not publish ports on the host');
+  assert.doesNotMatch(
+    compose,
+    /MC_API_SECRET: [^$\s]/,
+    'the secret must never be written in the compose file',
+  );
+  // O mesmo segredo chega ao servidor Paper para o plugin.
+  assert.equal((compose.match(/MC_API_SECRET: \$\{MC_API_SECRET:-\}/g) ?? []).length, 2);
+});
+
+test('API Dockerfile builds from the lockfile, runs as non-root and never embeds the secret', async () => {
+  const dockerfile = await readFile(
+    new URL('../infrastructure/docker/api/Dockerfile', import.meta.url),
+    'utf8',
+  );
+  const env = await readFile(
+    new URL('../infrastructure/docker/.env.example', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(dockerfile, /^FROM node:26\.13\.1-alpine$/m);
+  assert.match(dockerfile, /pnpm install --frozen-lockfile/);
+  assert.match(dockerfile, /^USER node$/m);
+  assert.doesNotMatch(dockerfile, /^(ENV|ARG)\s+MC_API_SECRET/m);
+  assert.match(env, /^MC_API_SECRET=$/m, '.env.example must keep the secret empty');
+});

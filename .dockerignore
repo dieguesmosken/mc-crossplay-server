@@ -1,0 +1,14 @@
+.git
+node_modules
+**/node_modules
+**/dist
+**/build
+**/.gradle
+.env
+.env.*
+!.env.example
+infrastructure/docker/data
+infrastructure/**/data
+arquivo
+game
+resources

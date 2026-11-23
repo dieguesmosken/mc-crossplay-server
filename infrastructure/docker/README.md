@@ -93,6 +93,25 @@ O teste não isolou o ajuste de `advertise-addresses` (veja abaixo): não sabemo
 - **`advertise-addresses` (hipótese não confirmada).** O Geyser anuncia ao celular os endereços da própria máquina e o IP público achado por STUN. Dentro do Docker, a "máquina" é o container, e o IP público do STUN usa outra porta que a `19132` (o log mostra `…:57936`). Em LAN, a `config.yml` aceita listar um endereço em `bedrock.signaling.advertise-addresses` (por exemplo `["IP-da-LAN"]`). **Não confirmamos que isso seja necessário**: o beta chegou ao servidor com a config padrão. Se a conexão falhar na LAN, é um ajuste a testar, e o IP fixo não deve ficar na configuração depois.
 - **Avisos que não impedem a entrada:** `Send failed, errno=101` e o STUN com `cannot reach […]` (rede sem rota IPv6); `Unable to resolve the skin api … api.geysermc.org` (só afeta skins; o container não resolveu o endereço); `*** Currently you are 3 builds behind ***` (o projeto fixa o Paper build 255). O log também avisa que o servidor roda como `root` dentro do container; isso não foi alterado aqui. O relógio dos logs do container está em UTC.
 
+### API da fila no Docker (opcional, issue #25 etapa 5)
+
+O serviço `api` do compose roda a API de `apps/api` (fila, limite de 10, reservas) numa imagem Node 26.13.1. Ele só sobe com o perfil `api`; sem o perfil, `docker compose up -d` continua subindo só o Minecraft.
+
+- **Segredo.** O plugin e a API assinam as chamadas com HMAC usando o mesmo `MC_API_SECRET` (mínimo de 16 caracteres). Gere um com `openssl rand -hex 32` e coloque em `infrastructure/docker/.env` (ignorado pelo Git). O `.env.example` mantém a variável **vazia** de propósito. O compose passa o valor ao serviço `api` e ao `papermc`; a API recusa subir com segredo vazio ou curto.
+- **Rede.** A API **não publica porta no host**: ela só responde na rede interna `minecraft_net`. Dentro dessa rede o plugin a alcança em `http://api:8787`. O plugin avisa (sem bloquear) quando o endereço é `http` fora de `localhost`; numa rede privada do compose isso é esperado.
+- **Dados.** O estado da fila (SQLite) fica no volume nomeado `api_data`, em `/data/api.sqlite`, e sobrevive a reinícios. O `docker compose down -v` apaga esse volume.
+- **Plugin.** O jar do plugin vem do PR #30 (`apps/plugin-paper`) e ainda não está embutido na imagem do Minecraft. Copie o `mc-platform-*.jar` para `data/plugins/`, inicie o servidor uma vez para gerar `data/plugins/McPlatform/config.yml` e troque `api-url` para `'http://api:8787'`.
+
+```sh
+cd infrastructure/docker
+echo "MC_API_SECRET=$(openssl rand -hex 32)" >> .env      # uma vez; não mostre nem comite este arquivo
+docker compose --profile api up -d --build
+docker compose ps                                          # api deve ficar "healthy"
+docker compose logs api                                    # "API ouvindo em http://0.0.0.0:8787"
+```
+
+**Não validado:** o `docker build` da imagem e o `compose up` com o perfil `api` (nenhum daemon Docker no ambiente onde isto foi escrito), o plugin carregado num Paper real e a entrada de jogadores com a fila ativa. O que foi verificado: `docker compose config` (com e sem o perfil), os testes de `tests/entrypoint.test.mjs`, e a existência da tag `node:26.13.1-alpine` no Docker Hub (amd64 e arm64).
+
 ### `minecraft/`
 
 - **Dockerfile**: imagem base `eclipse-temurin:25-jdk-alpine`, baixa Paper 26.3 build 255 de `fill-data.papermc.io`, cria `/server/data` (ponto de montagem), copia `entrypoint.sh`.

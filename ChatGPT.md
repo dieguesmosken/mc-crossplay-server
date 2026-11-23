@@ -174,4 +174,14 @@ Autor: Claude. Branch: `docs/lan-test-findings`, a partir de `feat/configurable-
 
 ---
 
+## 2026-11-23T00:50:35-03:00 [America/Sao_Paulo] — Issue #25 etapa 5: API da fila no Docker
+
+Autor: Claude. Branch: `feat/docker-api-service`, a partir de `docs/lan-test-findings`.
+
+- **Alterados:** `infrastructure/docker/docker-compose.yml`, `.env.example`, `README.md`, `api/Dockerfile` (novo), `.dockerignore` (novo), `tests/entrypoint.test.mjs`, `CHANGELOG.md`, este arquivo.
+- **Testado:** `node --test` 55/55; `docker compose config` com e sem o perfil `api`; mutação (sem `USER node`, segredo no `.env.example`).
+- **Não validado:** `docker build`, `compose up --profile api`, plugin num Paper real. Sem daemon Docker no ambiente.
+
+---
+
 *Este documento será mantido como canal de comunicação oficial entre a equipe de desenvolvimento e o modelo ChatGPT.*

@@ -16,6 +16,12 @@
 #                    (só este computador). Para testar na rede local use o IP da LAN do
 #                    computador ou 0.0.0.0. ATENÇÃO: o Docker ignora o ufw; qualquer valor
 #                    diferente de 127.0.0.1 abre as portas para a LAN (veja o README).
+#   MC_API_SECRET    segredo HMAC compartilhado entre a API da fila e o plugin (mínimo de
+#                    16 caracteres). Fica no .env (ignorado pelo Git), nunca neste arquivo.
+#
+# API da fila (opcional): o serviço "api" só sobe com o perfil "api":
+#   docker compose --profile api up -d
+# Ele não publica porta no host; o plugin o alcança por http://api:8787 na rede interna.
 
 services:
   papermc:
@@ -36,6 +42,8 @@ services:
     environment:
       MC_JAVA_HEAP: ${MC_JAVA_HEAP:-2G}
       MC_JAVA_OPTS: ${MC_JAVA_OPTS:-}
+      # Lido pelo plugin McPlatform (a API e o plugin assinam as chamadas com este segredo).
+      MC_API_SECRET: ${MC_API_SECRET:-}
     # Portas publicadas em MC_BIND_ADDRESS (padrão: loopback, uso local).
     # Java usa TCP (25565). Bedrock usa UDP (19132) e, com NetherNet (Bedrock 26.60+),
     # também TCP 19132 para a sinalização (issue #23).
@@ -48,6 +56,33 @@ services:
       - ./data:/server/data
     networks:
       - minecraft_net
+
+  # API da fila (apps/api). Só sobe com: docker compose --profile api up -d
+  api:
+    profiles: ["api"]
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/api/Dockerfile
+    container_name: minecraft-api
+    restart: "no"
+    environment:
+      # Vazio ou com menos de 16 caracteres: a API recusa subir e explica no log.
+      MC_API_SECRET: ${MC_API_SECRET:-}
+    # SEM "ports": a API fica só na rede interna (minecraft_net). O site da fila usará
+    # a API por outro caminho, definido na etapa do site.
+    volumes:
+      - api_data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8787/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - minecraft_net
+
+volumes:
+  api_data:
 
 networks:
   minecraft_net:

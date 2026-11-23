@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Adicionado (issue #25 etapa 5) — API da fila no Docker
+- `infrastructure/docker/api/Dockerfile` (Node 26.13.1 Alpine, pnpm 12.21.0, `--frozen-lockfile`, usuário `node`) e `.dockerignore` na raiz.
+- `docker-compose.yml`: serviço `api` no perfil `api` (`docker compose --profile api up -d`), **sem porta publicada no host**, com volume nomeado `api_data` e healthcheck em `/health`. `MC_API_SECRET` chega à API e ao `papermc` pelo `.env`; o `.env.example` mantém a variável vazia.
+- README do Docker: seção "API da fila no Docker" (segredo, rede, dados, instalação do plugin do PR #30).
+- Testes: 2 novos em `tests/entrypoint.test.mjs` (perfil e ausência de `ports`/segredo no compose; Dockerfile com lockfile, usuário não root e sem segredo). Total 55/55, com verificação por mutação.
+- **Não executado:** `docker build`, `docker compose up --profile api`, plugin num Paper real.
+
 ### Documentado (issues #12 e #23) — achados do teste do Bedrock na LAN
 - Teste real em 2026-11-22: Linux (Pop!_OS 24.04), Paper 26.3 build 255, Geyser `2.12.1-b1306`, Floodgate `2.2.5`, celular Galaxy A17 (Bedrock release 26.60) na mesma rede. O celular entrou no mundo como `.TeuzinYTBR` por `IP-da-LAN:19132` (NetherNet), com `MC_BIND_ADDRESS=0.0.0.0`.
 - `infrastructure/docker/README.md`: matriz da #12 atualizada (só a linha "Bedrock na LAN (NetherNet)" foi validada) e nova seção de solução de problemas: versão Bedrock fora da lista do Geyser (`Outdated Geyser proxy!`, o beta 26.70 foi recusado), Geyser que não se atualiza sozinho (`data/plugins/geyser.jar`), whitelist, console do servidor, permissão no socket do Docker, `advertise-addresses` (hipótese, não confirmada) e avisos inofensivos do log.
