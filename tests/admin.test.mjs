@@ -130,6 +130,23 @@ test('log parser understands Paper 26 "System chat:" lines and whitelist refusal
   assert.deepEqual([...p.online], [], 'denied player is not online');
 });
 
+test('log parser reads the latest.log line format "[HH:MM:SS] [Thread/LEVEL]: msg"', () => {
+  const p = new LogParser();
+  const join = p.feed('[05:54:49] [Server thread/INFO]: System chat: .TeuzinYTBR joined the game');
+  assert.deepEqual(
+    [join.kind, join.player, join.level, join.clock],
+    ['join', '.TeuzinYTBR', 'INFO', '05:54:49'],
+  );
+  const warn = p.feed('[05:34:30] [Netty Epoll Server IO #3/WARN]: algo estranho');
+  assert.deepEqual([warn.kind, warn.level], ['warn', 'WARN']);
+  const denied = p.feed(
+    '[05:32:27] [Server thread/INFO]: [Geyser-Spigot] Fulano has disconnected from the Java server because of §rYou are not whitelisted on this server!',
+  );
+  assert.deepEqual([denied.kind, denied.player], ['denied', 'Fulano']);
+  assert.equal(p.feed('[05:55:00] [Server thread/ERROR]: Boom').kind, 'error');
+  assert.equal(p.feed('\tat java.base/Foo.bar(Foo.java:1)'), null);
+});
+
 test('log tailer reads new lines, keeps partial lines and survives truncation', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'tail-'));
   const file = join(dir, 'latest.log');
