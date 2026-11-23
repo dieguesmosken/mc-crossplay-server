@@ -7,19 +7,9 @@ const FILTERS = {
   play: (e) => e.kind === 'advancement' || e.kind === 'death',
   alert: (e) => e.kind === 'warn' || e.kind === 'error',
 };
-const LABEL = {
-  join: 'entrou no mundo',
-  leave: 'saiu do mundo',
-  advancement: '',
-  death: '',
-  command: 'usou o comando',
-  chat: '',
-};
-
 let events = [];
 let filter = 'all';
 let source = null;
-let capacity = 0;
 
 function show(id, visible) {
   $(id).hidden = !visible;
@@ -112,7 +102,6 @@ function renderState(state, logFound) {
 }
 
 function renderSlots(queue) {
-  capacity = queue.capacity;
   const box = $('slots');
   box.replaceChildren();
   for (let i = 0; i < queue.capacity; i += 1) {
