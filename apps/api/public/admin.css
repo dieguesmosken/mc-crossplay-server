@@ -395,6 +395,15 @@ input:focus-visible {
 .ev.join .what {
   color: var(--moss);
 }
+.ev.denied .what {
+  color: var(--amber);
+}
+.ev .copy {
+  margin-left: 0.4rem;
+  font: inherit;
+  font-size: 0.85em;
+  cursor: pointer;
+}
 .ev.leave .what {
   color: var(--stone);
 }
