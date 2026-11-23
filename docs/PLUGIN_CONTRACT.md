@@ -1,6 +1,6 @@
 # Contrato entre plugin Paper, API e fila (issue #25)
 
-Estado: **contrato, lógica da fila e API implementados e testados**. O plugin Paper ainda não existe.
+Estado: **contrato, lógica da fila, API e núcleo do plugin implementados e testados**. O adaptador Paper **compila no CI contra o `paper-api` real** (Java 25), mas **ainda não foi carregado num Paper real** (veja `apps/plugin-paper/README.md`).
 
 ## Fluxo
 
@@ -41,8 +41,13 @@ Cabeçalhos `x-mc-timestamp` (milissegundos) e `x-mc-signature` (HMAC-SHA256 hex
 - Limite padrão de 10 jogadores (`MAX_PLAYERS`); `online + reservas <= capacidade`.
 - Vaga livre e fila vazia: entrada direta. Com fila, a vaga vira reserva do primeiro, com prazo (padrão 120 s); vencida, passa ao próximo.
 - `sync` (heartbeat) corrige a presença: quem caiu sai, quem o plugin liberou sozinho (ops, whitelist local) entra.
-- Falha da API: política do plugin (padrão fail-closed, com ops e whitelist local sempre liberados). Ainda a implementar.
+- Falha da API: política do plugin (`fail-policy`, padrão `closed`). Operadores entram sem consultar a API (`local-bypass.ops`). O bypass da whitelist local é opcional e vem **desligado**, porque quem está no bypass fica fora da fila e do limite. Implementado em `apps/plugin-paper/core`.
+- Configuração inválida (por exemplo, sem `MC_API_SECRET`): o plugin continua carregado e nega jogadores comuns, em vez de se desligar.
+
+## Plugin (`apps/plugin-paper`)
+
+Java 25 + Gradle, em dois módulos: `core` (sem Bukkit e sem dependências: regras, cliente HTTP, HMAC, política de falha) e `paper` (adaptador). O `core` tem 36 testes (`gradle :core:check`) e foi validado contra a API real: a assinatura HMAC feita em Java é aceita pelo Fastify e o contrato fecha nas duas pontas (7 testes de integração, veja o README do plugin). Detalhes, build e limitações em `apps/plugin-paper/README.md`.
 
 ## Pendente
 
-Plugin Paper (Java 25, Gradle), integração real Java e Bedrock. Decisões em aberto na issue #25: como vincular o nome Java/gamertag à reserva no site e SSE vs WebSocket.
+Carregar o plugin num Paper real e a integração real Java e Bedrock (etapa 5). Decisões em aberto na issue #25: como vincular o nome Java/gamertag à reserva no site e SSE vs WebSocket.
