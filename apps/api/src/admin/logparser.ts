@@ -5,6 +5,7 @@ export type LogKind =
   | 'advancement'
   | 'death'
   | 'command'
+  | 'denied'
   | 'server'
   | 'warn'
   | 'error'
@@ -42,6 +43,12 @@ const DEATH = new RegExp(
     'skewered|poked|burned|doomed|struck|obliterated|roasted|frozen)|fell |drowned|burned to death|' +
     'starved|suffocated|withered|froze|died|hit the ground|went up in flames|walked into|' +
     "tried to swim|blew up|experienced kinetic|discovered|left the confines|didn't want)",
+);
+// Paper 26 antepõe "System chat: " a entradas, saídas, mortes e conquistas.
+const SYSTEM_CHAT = /^System chat: /;
+// Recusa pela whitelist. Só a linha do Geyser traz o nome (jogador Bedrock, sem o ponto do Floodgate).
+const DENIED = new RegExp(
+  `^\\[Geyser-Spigot\\] ${NAME} has disconnected from the Java server because of (?:§r)?You are not whitelisted on this server!$`,
 );
 const STARTED = /^Done \(.*\)! For help, type "help"$/;
 const STOPPING = /^Stopping (the )?server$/;
@@ -104,8 +111,17 @@ export class LogParser {
     };
   }
 
-  #classify(clock: string, level: string, message: string): LogEntry {
+  #classify(clock: string, level: string, rawMessage: string): LogEntry {
     let m: RegExpExecArray | null;
+    const message = rawMessage.replace(SYSTEM_CHAT, '');
+    if ((m = DENIED.exec(message)) !== null)
+      return this.#entry(
+        clock,
+        level,
+        'denied',
+        'tentou entrar, mas não está na whitelist',
+        m[1] as string,
+      );
     if ((m = JOIN.exec(message)) !== null) {
       const player = m[1] as string;
       this.#online.add(player);

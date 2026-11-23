@@ -105,6 +105,31 @@ test('log parser classifies joins, leaves, chat, advancements, deaths and server
   assert.equal(feed('\u001b[32m[10:10:00 INFO]: Hello\u001b[0m').kind, 'info', 'ANSI removed');
 });
 
+test('log parser understands Paper 26 "System chat:" lines and whitelist refusals', () => {
+  const p = new LogParser();
+  const join = p.feed('[05:34:33 INFO]: System chat: .TeuzinYTBR joined the game');
+  assert.deepEqual([join.kind, join.player], ['join', '.TeuzinYTBR']);
+  assert.deepEqual([...p.online], ['.TeuzinYTBR']);
+  assert.equal(
+    p.feed('[05:38:17 INFO]: System chat: .TeuzinYTBR was slain by Zombie').kind,
+    'death',
+  );
+  const left = p.feed('[05:40:00 INFO]: System chat: .TeuzinYTBR left the game');
+  assert.equal(left.kind, 'leave');
+  assert.deepEqual([...p.online], []);
+  const denied = p.feed(
+    '[05:32:27 INFO]: [Geyser-Spigot] TeuzinYTBR has disconnected from the Java server because of §rYou are not whitelisted on this server!',
+  );
+  assert.deepEqual([denied.kind, denied.player], ['denied', 'TeuzinYTBR']);
+  assert.equal(
+    p.feed(
+      '[05:32:27 INFO]: Disconnecting /192.168.18.140:0: You are not whitelisted on this server!',
+    ).kind,
+    'info',
+  );
+  assert.deepEqual([...p.online], [], 'denied player is not online');
+});
+
 test('log tailer reads new lines, keeps partial lines and survives truncation', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'tail-'));
   const file = join(dir, 'latest.log');

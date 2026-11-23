@@ -2,7 +2,7 @@ const $ = (id) => document.getElementById(id);
 const MAX_EVENTS = 400;
 const FILTERS = {
   all: () => true,
-  people: (e) => e.kind === 'join' || e.kind === 'leave',
+  people: (e) => e.kind === 'join' || e.kind === 'leave' || e.kind === 'denied',
   chat: (e) => e.kind === 'chat',
   play: (e) => e.kind === 'advancement' || e.kind === 'death',
   alert: (e) => e.kind === 'warn' || e.kind === 'error',
@@ -205,6 +205,24 @@ function pushEvent(entry) {
   renderTimeline();
 }
 
+// Não libera ninguém sozinho: copia o comando para você colar no console do servidor.
+function copyButton(player) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'copy';
+  button.textContent = 'Copiar comando de liberar';
+  button.addEventListener('click', async () => {
+    const command = `fwhitelist add ${player}`;
+    try {
+      await navigator.clipboard.writeText(command);
+      button.textContent = 'Copiado';
+    } catch {
+      button.textContent = command;
+    }
+  });
+  return button;
+}
+
 function renderTimeline() {
   const list = $('timeline');
   list.replaceChildren();
@@ -231,6 +249,7 @@ function renderTimeline() {
       detail.textContent = e.detail;
       body.append(detail);
     }
+    if (e.kind === 'denied' && e.player) body.append(' ', copyButton(e.player));
     li.append(time, body);
     list.append(li);
   }
