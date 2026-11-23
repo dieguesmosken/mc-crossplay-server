@@ -1,6 +1,7 @@
 import { PlayerQueue } from '@mc-platform/queue';
 
 import { buildApp } from './app.js';
+import { MIN_EDGE_SECRET_LENGTH } from './admin/edge.js';
 import { LogTailer } from './admin/logtail.js';
 import { isValidPasswordHash } from './admin/password.js';
 import { StatsSampler } from './admin/stats.js';
@@ -23,6 +24,11 @@ const saved = store.load();
 if (saved !== null) queue.restore(saved);
 
 const hash = process.env.MC_ADMIN_PASSWORD_HASH ?? '';
+const edgeSecret = process.env.MC_EDGE_SECRET ?? '';
+if (edgeSecret !== '' && edgeSecret.length < MIN_EDGE_SECRET_LENGTH) {
+  console.error(`MC_EDGE_SECRET precisa ter pelo menos ${MIN_EDGE_SECRET_LENGTH} caracteres.`);
+  process.exit(1);
+}
 let tailer: LogTailer | undefined;
 let stats: StatsSampler | undefined;
 let admin: Parameters<typeof buildApp>[0]['admin'];
@@ -44,6 +50,7 @@ if (hash === '') {
     stats,
     publicDir: process.env.MC_PUBLIC_DIR ?? new URL('../public', import.meta.url).pathname,
     secureCookies: process.env.MC_ADMIN_SECURE_COOKIE === '1',
+    ...(edgeSecret === '' ? {} : { edgeSecret }),
   };
 }
 

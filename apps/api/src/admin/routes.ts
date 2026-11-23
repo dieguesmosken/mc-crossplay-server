@@ -7,6 +7,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 
 import type { PlayerQueue } from '@mc-platform/queue';
 
+import { EDGE_SIG_HEADER, EDGE_TS_HEADER, verifyEdgeRequest } from './edge.js';
 import { LoginLimiter } from './limiter.js';
 import type { LogEntry } from './logparser.js';
 import type { LogTailer } from './logtail.js';
@@ -34,6 +35,11 @@ export interface AdminOptions {
   readonly publicDir: string;
   /** Cookie com atributo Secure: ligue quando o painel estiver atrás de HTTPS. */
   readonly secureCookies?: boolean;
+  /**
+   * Segredo compartilhado com o Worker (apps/edge-gateway). Com ele, pedidos assinados pelo
+   * Worker (que já autenticou a senha na borda) valem como sessão. Sem ele, só o login local.
+   */
+  readonly edgeSecret?: string;
   readonly now?: () => number;
   readonly limiter?: LoginLimiter;
 }
@@ -103,9 +109,25 @@ export function registerAdmin(app: FastifyInstance, options: AdminOptions): void
     });
   }
 
+  const header = (request: FastifyRequest, name: string): string | undefined => {
+    const value = request.headers[name];
+    return Array.isArray(value) ? value[0] : value;
+  };
+
   function isAuthed(request: FastifyRequest): boolean {
     const token = readCookie(request.headers.cookie, SESSION_COOKIE);
-    return token !== undefined && verifySessionToken(sessionKey, token, now());
+    if (token !== undefined && verifySessionToken(sessionKey, token, now())) return true;
+    if (options.edgeSecret === undefined) return false;
+    return verifyEdgeRequest(
+      options.edgeSecret,
+      {
+        ts: header(request, EDGE_TS_HEADER),
+        sig: header(request, EDGE_SIG_HEADER),
+        method: request.method,
+        url: request.url,
+      },
+      now(),
+    );
   }
 
   function requireAuth(request: FastifyRequest, reply: FastifyReply): boolean {
