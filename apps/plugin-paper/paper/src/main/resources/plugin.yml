@@ -1,0 +1,6 @@
+name: McPlatform
+version: '${version}'
+main: dev.mcplatform.plugin.paper.McPlatformPlugin
+api-version: '26.3'
+description: Controle de acesso (fila, reservas e limite de jogadores) via API da plataforma.
+softdepend: [floodgate]

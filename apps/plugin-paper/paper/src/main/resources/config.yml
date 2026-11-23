@@ -1,0 +1,24 @@
+# Configuração do plugin McPlatform (issue #25).
+#
+# O SEGREDO NÃO FICA AQUI. Defina a variável de ambiente MC_API_SECRET (mínimo de 16 caracteres,
+# o mesmo valor usado pela API em apps/api) no processo do servidor Paper.
+
+# Endereço da API. Fora de localhost use https ou uma rede privada.
+api-url: 'http://127.0.0.1:8787'
+
+# O que fazer com jogadores comuns quando a API não responde:
+#   closed = nega (padrão, seguro)    open = libera todo mundo (use só em teste)
+fail-policy: closed
+
+# Tempo máximo de cada chamada à API (500 a 30000). O login do jogador espera por isso.
+request-timeout-ms: 3000
+
+# Intervalo do heartbeat com a lista real de jogadores (5 a 300 s).
+heartbeat-seconds: 15
+
+# Quem entra SEM consultar a API (e portanto fora do limite e da fila):
+local-bypass:
+  ops: true
+  # Se ligar, TODO jogador da whitelist do servidor passa por cima da fila e do limite.
+  # Deixe desligado se a whitelist lista os amigos que devem respeitar a fila.
+  whitelist: false
