@@ -158,9 +158,9 @@ Validação contra:
 - [x] docker-compose.yml com volume único `./data:/server/data` (não oculta `paper.jar`), portas em loopback, sem restart automático e memória configurável.
 - [x] Documentar portas TCP (Java) e UDP (Bedrock) separadamente.
 - [x] Persistir `eula.txt` dentro do volume (`data/eula.txt`, inicial `eula=false`, criado pelo entrypoint/`init-data.sh`).
-- [ ] Validar startup real com EULA aceita.
+- [x] Validar startup real com EULA aceita (2026-11-23).
 - [ ] Testar conexão Java (TCP) com cliente Minecraft Java Edition.
-- [ ] Testar conexão Bedrock (UDP) com cliente Minecraft Bedrock.
+- [x] Testar conexão Bedrock (UDP) com cliente Minecraft Bedrock: LAN, versão 26.60 (a beta 26.70 não entrou). Outras versões do Bedrock seguem sem teste.
 
 ---
 
