@@ -199,6 +199,22 @@ function renderStats(s) {
     );
 }
 
+// O log só tem HH:MM:SS e o contêiner roda em UTC: converte para o fuso do navegador.
+function localClock(clock) {
+  const m = /^(\d{2}):(\d{2}):(\d{2})$/.exec(clock);
+  if (!m) return clock;
+  const now = new Date();
+  const utc = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+    +m[1],
+    +m[2],
+    +m[3],
+  );
+  return new Date(utc).toLocaleTimeString('pt-BR', { hour12: false });
+}
+
 function pushEvent(entry) {
   events.push(entry);
   if (events.length > MAX_EVENTS) events.shift();
@@ -231,7 +247,8 @@ function renderTimeline() {
     const li = document.createElement('li');
     li.className = `ev ${e.kind}`;
     const time = document.createElement('time');
-    time.textContent = e.clock;
+    time.textContent = localClock(e.clock);
+    time.title = `${e.clock} UTC`;
     const body = document.createElement('div');
     if (e.player) {
       const who = document.createElement('span');

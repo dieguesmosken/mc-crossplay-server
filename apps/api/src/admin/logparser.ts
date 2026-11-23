@@ -56,6 +56,71 @@ const STOPPING = /^Stopping (the )?server$/;
 
 const MAX_DETAIL = 2000;
 
+// Avisos que o Paper/Geyser sempre escrevem e que não pedem ação: não entram em "Alertas".
+const HARMLESS_WARN: readonly RegExp[] = [
+  /^\*{10,}$/,
+  /^YOU ARE RUNNING THIS SERVER AS AN ADMINISTRATIVE OR ROOT USER/,
+  /^YOU ARE OPENING YOURSELF UP TO POTENTIAL RISKS/,
+  /^FOR MORE INFORMATION, SEE https:\/\/madelinemiller\.dev\//,
+  /^\[oshi\.software\.os\.linux\.LinuxOperatingSystem\] Did not find udev library/,
+  /^\[tel\.schich\.libdatachannel\.LibDataChannel\] .*juice: Send failed, errno=101$/,
+];
+
+const MOBS: Readonly<Record<string, string>> = {
+  Zombie: 'Zumbi',
+  Skeleton: 'Esqueleto',
+  Spider: 'Aranha',
+  'Cave Spider': 'Aranha da caverna',
+  Witch: 'Bruxa',
+  Drowned: 'Afogado',
+  Husk: 'Husk',
+  Stray: 'Esqueleto errante',
+  Pillager: 'Saqueador',
+  'Iron Golem': 'Golem de ferro',
+  Wolf: 'Lobo',
+  Bee: 'Abelha',
+};
+
+// Mortes mais comuns, em português. O que não estiver aqui continua no texto original.
+const DEATHS: readonly (readonly [RegExp, string])[] = [
+  [/^was slain by (.+)$/, 'foi morto por $1'],
+  [/^was shot by (.+)$/, 'foi atingido por flecha de $1'],
+  [/^was killed by (.+)$/, 'foi morto por $1'],
+  [/^was blown up by (.+)$/, 'foi explodido por $1'],
+  [/^was fireballed by (.+)$/, 'foi atingido por bola de fogo de $1'],
+  [/^was pummeled by (.+)$/, 'foi atingido por $1'],
+  [/^was impaled by (.+)$/, 'foi empalado por $1'],
+  [/^was stung to death$/, 'morreu picado'],
+  [/^was pricked to death$/, 'morreu espetado'],
+  [/^was struck by lightning$/, 'foi atingido por um raio'],
+  [/^was squashed by a falling anvil$/, 'foi esmagado por uma bigorna'],
+  [/^drowned$/, 'morreu afogado'],
+  [/^burned to death$/, 'morreu queimado'],
+  [/^went up in flames$/, 'pegou fogo'],
+  [/^starved to death$/, 'morreu de fome'],
+  [/^suffocated in a wall$/, 'sufocou numa parede'],
+  [/^froze to death$/, 'morreu congelado'],
+  [/^withered away$/, 'morreu de definhamento'],
+  [/^blew up$/, 'explodiu'],
+  [/^hit the ground too hard$/, 'bateu no chão com muita força'],
+  [/^fell from a high place$/, 'caiu de um lugar alto'],
+  [/^fell off (?:a )?(ladder|vines|scaffolding)$/, 'caiu de $1'],
+  [/^tried to swim in lava$/, 'tentou nadar na lava'],
+  [/^walked into fire whilst fighting (.+)$/, 'andou no fogo lutando com $1'],
+  [/^walked into a cactus whilst trying to escape (.+)$/, 'esbarrou num cacto fugindo de $1'],
+  [/^died$/, 'morreu'],
+];
+
+export function translateDeath(text: string): string {
+  for (const [pattern, replacement] of DEATHS) {
+    if (!pattern.test(text)) continue;
+    return text
+      .replace(pattern, replacement)
+      .replace(/(?<= )([A-Z][A-Za-z]*(?: [A-Z][a-z]+)*)$/, (name) => MOBS[name] ?? name);
+  }
+  return text;
+}
+
 /**
  * Lê o log do Paper linha a linha e classifica o que aconteceu no mundo.
  * Mantém o conjunto de jogadores online para reconhecer mortes (que não têm formato fixo).
@@ -167,8 +232,10 @@ export class LogParser {
     if (space > 0) {
       const first = message.slice(0, space);
       if (this.#online.has(first) && DEATH.test(message.slice(space + 1)))
-        return this.#entry(clock, level, 'death', message.slice(space + 1), first);
+        return this.#entry(clock, level, 'death', translateDeath(message.slice(space + 1)), first);
     }
+    if (level === 'WARN' && HARMLESS_WARN.some((re) => re.test(message)))
+      return this.#entry(clock, level, 'info', message);
     const kind: LogKind =
       level === 'WARN' ? 'warn' : level === 'ERROR' || level === 'FATAL' ? 'error' : 'info';
     return this.#entry(clock, level, kind, message);

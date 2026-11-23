@@ -147,6 +147,31 @@ test('log parser reads the latest.log line format "[HH:MM:SS] [Thread/LEVEL]: ms
   assert.equal(p.feed('\tat java.base/Foo.bar(Foo.java:1)'), null);
 });
 
+test('log parser hides harmless warnings and translates common deaths', () => {
+  const p = new LogParser();
+  for (const line of [
+    '[05:32:02] [Server thread/WARN]: ****************************',
+    '[05:32:02] [Server thread/WARN]: YOU ARE RUNNING THIS SERVER AS AN ADMINISTRATIVE OR ROOT USER. THIS IS NOT ADVISED.',
+    '[05:32:02] [Server thread/WARN]: FOR MORE INFORMATION, SEE https://madelinemiller.dev/blog/root-minecraft-server/',
+    '[05:31:54] [Server thread/WARN]: [oshi.software.os.linux.LinuxOperatingSystem] Did not find udev library in operating system. Some features may not work.',
+    '[05:32:25] [Server thread/WARN]: [tel.schich.libdatachannel.LibDataChannel] rtc::impl::IceTransport::LogCallback@406: juice: Send failed, errno=101',
+  ])
+    assert.equal(p.feed(line).kind, 'info', line);
+  assert.equal(p.feed("[05:40:00] [Server thread/WARN]: Can't keep up!").kind, 'warn');
+  p.feed('[05:34:33] [Server thread/INFO]: System chat: Ana joined the game');
+  const text = (l) => p.feed(`[05:40:00] [Server thread/INFO]: System chat: ${l}`).text;
+  assert.equal(text('Ana was slain by Zombie'), 'foi morto por Zumbi');
+  assert.equal(text('Ana was shot by Skeleton'), 'foi atingido por flecha de Esqueleto');
+  assert.equal(text('Ana drowned'), 'morreu afogado');
+  assert.equal(text('Ana fell from a high place'), 'caiu de um lugar alto');
+  assert.equal(text('Ana was slain by Bob'), 'foi morto por Bob', 'player names stay');
+  assert.equal(
+    text('Ana experienced kinetic energy'),
+    'experienced kinetic energy',
+    'unknown stays',
+  );
+});
+
 test('log tailer reads new lines, keeps partial lines and survives truncation', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'tail-'));
   const file = join(dir, 'latest.log');
