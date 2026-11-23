@@ -1,0 +1,12 @@
+# Final de linha LF nos arquivos que rodam em Linux/WSL/Termux/containers.
+# No Windows (core.autocrlf=true), um .sh com CRLF quebra o shebang e o entrypoint.
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.mjs text eol=lf
+*.ts text eol=lf
+*.md text eol=lf
+.env.example text eol=lf
+.gitattributes text eol=lf

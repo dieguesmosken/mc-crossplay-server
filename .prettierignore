@@ -1,0 +1,6 @@
+# Gerenciado pelo pnpm
+pnpm-lock.yaml
+
+# Materiais históricos
+arquivo/
+.github/workflows/python-app.yml

@@ -1,0 +1,89 @@
+# docker-compose.yml para o runtime Minecraft (Paper + GeyserMC + Floodgate)
+# Ambiente local-first; preserva mundo, plugins e configs em um único volume persistente.
+#
+# Persistência: ./data (host) → /server/data (container), que é o diretório de trabalho
+# do Paper. Tudo que o servidor gera fica ali: world*, plugins/, config/, logs/,
+# server.properties, whitelist.json, ops.json, bukkit.yml, spigot.yml e eula.txt.
+# O /server/paper.jar fica na imagem e nunca é coberto por volume.
+#
+# Antes do primeiro uso, rode: ./scripts/init-data.sh (cria ./data com o seu usuário).
+#
+# Variáveis opcionais (veja .env.example):
+#   MC_MEMORY_LIMIT  limite de memória do container. Padrão: 3g.
+#   MC_JAVA_HEAP     heap da JVM. Padrão: 2G (precisa ficar abaixo do limite do container).
+#   MC_JAVA_OPTS     flags extras da JVM.
+#   MC_BIND_ADDRESS  endereço do host em que as portas são publicadas. Padrão: 127.0.0.1
+#                    (só este computador). Para testar na rede local use o IP da LAN do
+#                    computador ou 0.0.0.0. ATENÇÃO: o Docker ignora o ufw; qualquer valor
+#                    diferente de 127.0.0.1 abre as portas para a LAN (veja o README).
+#   MC_API_SECRET    segredo HMAC compartilhado entre a API da fila e o plugin (mínimo de
+#                    16 caracteres). Fica no .env (ignorado pelo Git), nunca neste arquivo.
+#
+# API da fila (opcional): o serviço "api" só sobe com o perfil "api":
+#   docker compose --profile api up -d
+# Ele não publica porta no host; o plugin o alcança por http://api:8787 na rede interna.
+
+services:
+  papermc:
+    # Construção baseada no Dockerfile abaixo
+    build:
+      context: ./minecraft
+      dockerfile: Dockerfile
+    container_name: minecraft-paper
+    working_dir: /server
+    # stdin e tty abertos: permitem digitar comandos no console do servidor com
+    # "docker attach minecraft-paper" (sair sem parar o servidor: Ctrl+P e Ctrl+Q).
+    stdin_open: true
+    tty: true
+    # Sem restart automático: o início/parada é decisão do usuário/Controller.
+    # Com "unless-stopped", a saída com código 1 por EULA não aceita viraria loop infinito.
+    restart: "no"
+    mem_limit: ${MC_MEMORY_LIMIT:-3g}
+    environment:
+      MC_JAVA_HEAP: ${MC_JAVA_HEAP:-2G}
+      MC_JAVA_OPTS: ${MC_JAVA_OPTS:-}
+      # Lido pelo plugin McPlatform (a API e o plugin assinam as chamadas com este segredo).
+      MC_API_SECRET: ${MC_API_SECRET:-}
+    # Portas publicadas em MC_BIND_ADDRESS (padrão: loopback, uso local).
+    # Java usa TCP (25565). Bedrock usa UDP (19132) e, com NetherNet (Bedrock 26.60+),
+    # também TCP 19132 para a sinalização (issue #23).
+    ports:
+      - "${MC_BIND_ADDRESS:-127.0.0.1}:25565:25565/tcp"
+      - "${MC_BIND_ADDRESS:-127.0.0.1}:19132:19132/udp"
+      - "${MC_BIND_ADDRESS:-127.0.0.1}:19132:19132/tcp"
+    volumes:
+      # Único volume persistente: mundo, plugins, configs, logs e EULA.
+      - ./data:/server/data
+    networks:
+      - minecraft_net
+
+  # API da fila (apps/api). Só sobe com: docker compose --profile api up -d
+  api:
+    profiles: ["api"]
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/api/Dockerfile
+    container_name: minecraft-api
+    restart: "no"
+    environment:
+      # Vazio ou com menos de 16 caracteres: a API recusa subir e explica no log.
+      MC_API_SECRET: ${MC_API_SECRET:-}
+    # SEM "ports": a API fica só na rede interna (minecraft_net). O site da fila usará
+    # a API por outro caminho, definido na etapa do site.
+    volumes:
+      - api_data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8787/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - minecraft_net
+
+volumes:
+  api_data:
+
+networks:
+  minecraft_net:
+    driver: bridge

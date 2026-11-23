@@ -1,114 +1,82 @@
-[![wakatime](https://wakatime.com/badge/github/dieguesmosken/servidor_bedrock.svg)](https://wakatime.com/badge/github/dieguesmosken/servidor_bedrock)
-[![Python application](https://github.com/dieguesmosken/servidor_bedrock/actions/workflows/python-app.yml/badge.svg)](https://github.com/dieguesmosken/servidor_bedrock/actions/workflows/python-app.yml)
-# Servidor Para Minecraft Bedrock escrito em Python 
+# Minecraft Server Platform
 
+Plataforma para operar um servidor Minecraft Java e Bedrock com entrada orientada por um site, inicialização sob demanda, fila de espera e gerenciamento automatizado.
 
-Este é um servidor de minecraft bedrock edition escrito em Python que permite gerenciar e criar portas para executar um servidor Minecraft Bedrock no seu computador. {missing-text}.
+> Estado atual: a configuração inicial do runtime Minecraft existe em `infrastructure/docker/` (Dockerfile + docker-compose.yml). O startup real, as conexões Java/Bedrock e a combinação de versões (Paper/Geyser/Floodgate/Java) ainda precisam ser validados.
 
-![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
-![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Windows 11](https://img.shields.io/badge/Windows%2011-%230079d5.svg?style=for-the-badge&logo=Windows%2011&logoColor=white)
-<!--![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black) -->
-## Pré-requisitos
+## Objetivo
 
-- Python 3 instalado no seu computador.
-- Bibliotecas Python: `socket`.
+Servidor para até 10 jogadores simultâneos, aceitando clientes Java e Bedrock. O site consulta o estado, solicita a inicialização quando necessário, acompanha a espera e apresenta os dados de conexão quando o servidor estiver pronto.
 
-## Como usar
+O navegador não consegue iniciar o cliente Minecraft automaticamente em todos os dispositivos. O jogador ainda deverá abrir o Minecraft e conectar-se pelo próprio jogo.
 
-1. Clone ou faça o download deste repositório.
+## Tecnologias
 
-2. Instale as bibliotecas necessárias usando o comando `pip install -r requirements.txt`.
+- Minecraft: Paper (Java).
+- Compatibilidade Bedrock: GeyserMC + Floodgate.
+- Backend/API: Node.js + Fastify.
+- Frontend: Next.js.
+- Persistência inicial: SQLite.
+- Ambientes de desenvolvimento suportados: Linux nativo (Pop!_OS 24.04), Windows 11 + WSL2 (Docker Desktop) e Termux no celular (sem Docker). Veja `sh scripts/dev/doctor.sh`.
+- Empacotamento: Docker Compose.
+- Hospedagem futura: VPS/EC2 Linux, mantendo a arquitetura independente do provedor.
 
-3. (opcional) Abra o arquivo `server_redirection.py` em um editor de texto.
+As versões e ferramentas da fundação estão documentadas em [docs/DEVELOPMENT_SETUP.md](docs/DEVELOPMENT_SETUP.md). A versão-alvo do Minecraft e a versão de Java exigida pelo Paper serão definidas antes da configuração do runtime.
 
-Na seção de configurações, atualize as seguintes variáveis de acordo com suas necessidades:
+## Estrutura
 
-   - `MINECRAFT_SERVER_IP`: O endereço IP do seu servidor Minecraft Bedrock.
-   - `MINECRAFT_SERVER_PORT`: A porta para o seu servidor Minecraft Bedrock.
+- apps/web: site Next.js.
+- apps/api: API HTTP e eventos de estado.
+- apps/controller: ciclo de vida do servidor.
+- packages/shared: contratos e tipos compartilhados.
+- packages/database: persistência e migrações.
+- packages/queue: fila e reservas.
+- packages/server-adapter: integração com o runtime.
+- infrastructure: Minecraft, Docker, Ubuntu e futura AWS.
+- docs: especificações, arquitetura e roadmap.
+- tests: testes automatizados.
 
-5. Execute o script usando o comando `python main.py`.
+## Funcionalidades previstas
 
-6. O servidor bedrock será iniciado e estará pronto para receber conexões dos jogadores.
+- Estado do servidor consultável pelo site.
+- Inicialização sob demanda e operação contínua opcional.
+- Estados de inicialização, carregamento e verificação de prontidão.
+- Fila lógica persistida, limite de 10 jogadores e reservas com expiração.
+- Instruções Java e Bedrock com botão para copiar.
+- Desligamento automático após período ocioso configurável.
+- Salvamento do mundo, backups, logs, health checks e proteção contra solicitações repetidas.
 
-## Configurando o Redirecionamento de Portas no Roteador
+A fila do site é uma fila de solicitações/reservas; não é uma fila de pacotes TCP/UDP do Minecraft.
 
-Para que o redirecionamento de portas funcione corretamente, você precisará configurar manualmente o redirecionamento de portas no seu roteador. Consulte o manual do seu roteador ou as instruções fornecidas pelo fabricante para obter detalhes sobre como realizar essa configuração.
+## Desenvolvimento
 
-Certifique-se de redirecionar a porta do servidor Minecraft Bedrock (por padrão, porta 19132) para o endereço IP local do computador onde o servidor está sendo executado.
+Requisitos iniciais:
 
-## Limitações
+- Node.js 26.13.1 LTS.
+- pnpm 12.21.0.
+- TypeScript 7.0.2.
+- Docker Desktop integrado ao WSL2.
 
-- Atualmente não esta funcional , este script esta em fase de construção e está aberto a novos colaboradores
-- Este script foi fornecido como uma solução de exemplo e pode não funcionar em todos os ambientes ou configurações específicas. Certifique-se de adaptá-lo às suas necessidades e realizar testes adequados.
+Comandos principais:
 
-## Contribuindo
+```bash
+pnpm install
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm format:check
+```
 
-Contribuições são bem-vindas! Sinta-se à vontade para enviar pull requests com melhorias, correções de bugs ou recursos adicionais.
+## Legado
 
-## Licença
+A implementação Python de 2023 foi preservada. Os arquivos antigos ainda presentes na raiz não fazem parte do novo workspace e não devem ser removidos ou movidos sem revisão e autorização explícita.
 
-Este projeto está licenciado sob a licença [MIT](LICENSE).
+## Segurança
 
-## Créditos
-
-- [@Dieguesmosken](https://dieguesmosken.github.io/) (Autor)
-- [@Dieguesmosken](https://dieguesmosken.github.io/) (Desenvolvedor)
----
-# Port Redirection Script for Minecraft Bedrock Server
-
-## Links
-
-- [Repositório no GitHub](https://github.com/dieguesmosken/servidor_bedrock/tree/main-server-bedrock)
-- [Página do Projeto](https://dieguesmosken.github.io/servidor_bedrock/)
-- [Página do Autor](https://dieguesmosken.github.io/)
-- [Licença](LICENSE)
-
-## Sumário
-
-## - [Changelog](CHANGELOG.md)
-
-### [0.0.1] - 2023-05-01
-### [0.0.2] - 2023-06-12
-
-## References
-
-- [Python](https://www.python.org/)
-- [Python - Socket](https://docs.python.org/3/library/socket.html)
-- [GitHub](https://github.com)
-- [GitHub - Actions](https://docs.github.com/en/actions)
-- [GitHub - Actions - Python Application](https://docs.github.com/en/actions/language-and-framework-guides/building-and-testing-python#building-and-testing-python-with-pytest)
-- [Python](https://www.python.org/)
-- [Python - Socket](https://docs.python.org/3/library/socket.html)
-- [Python - Socket - TCP](https://docs.python.org/3/library/socket.html#socket.socket)
-- [Python - Socket - UDP](https://docs.python.org/3/library/socket.html#socket.socket)
-
-## Tags
-
-## Keywords
-
-## See Also
-
-## Further Reading
-
-## External Links
-
-## Meta
-
-## Support
-
-Reach out to me at one of the following places!
-
-- Website at <a href="https://dieguesmosken.github.io/" target="_blank">`dieguesmosken.github.io`</a>
-- Email at <a href="mailto:matheus.diegues@outlook.com" target="_blank">`matheus.diegues@outllok.com`</a>
-- LinkedIn at <a href="https://www.linkedin.com/in/dieguesmosken" target="_blank">`dieguesmosken`</a>
-- Twitter at <a href="https://twitter.com/dieguesmosken" target="_blank">`@dieguesmosken`</a>
-- Facebook at <a href="https://www.facebook.com/dieguesmosken" target="_blank">`@dieguesmosken`</a>
-- Instagram at <a href="https://www.instagram.com/dieguesmosken" target="_blank">`@dieguesmosken`</a>
-- Pinterest at <a href="https://www.pinterest.com/dieguesmosken" target="_blank">`@dieguesmosken`</a>
-- YouTube at <a href="https://www.youtube.com/TeuzinYTBR" target="_blank">`TeuzinYTBR`</a>
-- TikTok at <a href="https://www.tiktok.com/@dieguesmosken" target="_blank">`@dieguesmosken`</a>
-- Twitch at <a href="https://www.twitch.tv/dieguesmosken" target="_blank">`@dieguesmosken`</a>
-
-- CodePen at <a href="https://codepen.io/dieguesmosken" target="_blank">`@dieguesmosken`</a>
-- Dev.to at <a href="https://dev.to/dieguesmosken" target="_blank">`@dieguesmosken`</a>
+- Nunca commitar tokens, senhas, chaves ou arquivos locais de ambiente.
+- Não expor a API de controle diretamente à internet.
+- Não publicar portas administrativas ou Docker socket.
+- Tratar mundo, plugins, banco de dados e backups como dados persistentes.
+- Validar tráfego TCP Java e UDP Bedrock separadamente.
+- Não assumir que um túnel HTTP genérico transporta o protocolo Minecraft.
