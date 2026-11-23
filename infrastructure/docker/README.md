@@ -146,6 +146,17 @@ echo 'eula=true' > infrastructure/docker/data/eula.txt
 
 Se você já tinha `data/world`, `data/plugins`, `data/config` e `data/logs` (volumes separados), o servidor agora usa tudo direto em `data/`. Nenhum arquivo é movido automaticamente. Mova manualmente o conteúdo de `data/config/` para `data/` (inclusive `server.properties`) e revise o `eula.txt`.
 
+## Painel admin e site
+
+A API (perfil `api`) também serve a página inicial do projeto (`/`) e o painel do administrador (`/admin`). O painel mostra, ao vivo, quem entra e sai do mundo, chat, conquistas, mortes e alertas (lidos do `latest.log` do Paper, montado somente leitura) e o estado do computador (CPU, RAM, disco, carga, tempo ligado).
+
+1. Gere o hash da senha (mínimo 12 caracteres; ela é digitada sem eco e nunca é gravada):
+   `pnpm --filter @mc-platform/api hash-password`
+2. Coloque o hash no seu `.env` (não no Git): `MC_ADMIN_PASSWORD_HASH=scrypt:...`. Sem ele o painel fica desligado.
+3. `docker compose --profile api up -d --build` e abra `http://127.0.0.1:8787/admin`.
+
+Segurança: a porta sai só em `127.0.0.1`; login com limite de tentativas (5 em 15 min por origem); cookie de sessão `HttpOnly` + `SameSite=Strict` (12 h); trocar a senha invalida as sessões; o painel só mostra texto (nada do log vira HTML). Não há HTTPS próprio: para acessar de fora use Tailscale ou um túnel e ligue `MC_ADMIN_SECURE_COOKIE=1` quando estiver atrás de HTTPS. O servidor Paper precisa ter rodado uma vez (a pasta `data/logs` existe) antes de subir a API.
+
 ## Notas sobre a configuração
 
 - Somente `/server/paper.jar` fica na imagem e nunca é coberto por volume; todo o resto vive em `/server/data`.

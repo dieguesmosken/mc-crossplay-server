@@ -1,6 +1,9 @@
 import { PlayerQueue } from '@mc-platform/queue';
 
 import { buildApp } from './app.js';
+import { LogTailer } from './admin/logtail.js';
+import { isValidPasswordHash } from './admin/password.js';
+import { StatsSampler } from './admin/stats.js';
 import { QueueStore } from './store.js';
 
 const secret = process.env.MC_API_SECRET ?? '';
@@ -19,7 +22,32 @@ const queue = new PlayerQueue();
 const saved = store.load();
 if (saved !== null) queue.restore(saved);
 
-const app = buildApp({ secret, queue, store });
+const hash = process.env.MC_ADMIN_PASSWORD_HASH ?? '';
+let tailer: LogTailer | undefined;
+let stats: StatsSampler | undefined;
+let admin: Parameters<typeof buildApp>[0]['admin'];
+if (hash === '') {
+  console.log('Painel desativado: defina MC_ADMIN_PASSWORD_HASH (pnpm --filter @mc-platform/api hash-password).');
+} else if (!isValidPasswordHash(hash)) {
+  console.error('MC_ADMIN_PASSWORD_HASH não está no formato esperado; o painel não será ativado.');
+  process.exit(1);
+} else {
+  tailer = new LogTailer({ file: process.env.MC_LOG_FILE ?? '/minecraft-logs/latest.log' });
+  stats = new StatsSampler({
+    procDir: process.env.MC_PROC_DIR ?? '/proc',
+    diskPath: process.env.MC_DISK_PATH ?? '/minecraft-logs',
+  });
+  await Promise.all([tailer.start(), stats.start()]);
+  admin = {
+    passwordHash: hash,
+    tailer,
+    stats,
+    publicDir: process.env.MC_PUBLIC_DIR ?? new URL('../public', import.meta.url).pathname,
+    secureCookies: process.env.MC_ADMIN_SECURE_COOKIE === '1',
+  };
+}
+
+const app = buildApp({ secret, queue, store, ...(admin === undefined ? {} : { admin }) });
 
 const timer = setInterval(() => {
   queue.tick();
@@ -28,6 +56,8 @@ const timer = setInterval(() => {
 
 async function shutdown(): Promise<void> {
   clearInterval(timer);
+  tailer?.stop();
+  stats?.stop();
   await app.close();
   store.close();
   process.exit(0);
