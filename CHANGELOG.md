@@ -7,6 +7,7 @@
 - API: `MC_EDGE_SECRET` (mínimo 32 caracteres) faz o painel aceitar pedidos assinados pelo Worker como sessão; sem ele, só o login local. `apps/api/src/admin/edge.ts`.
 - `scripts/hash-password.mjs` (senha sem eco), `wrangler.toml` (sem segredos), README com Tunnel, variáveis, rota e regra de WAF. Compose e `.env.example` ganharam `MC_EDGE_SECRET`.
 - Testes: `tests/edge.test.mjs` (7), com o Worker falando com a API de verdade; mutação (sem auth, sem lista de caminhos, sem limite de iterações os testes quebram). Total 71/71.
+- `MC_EDGE_ONLY=1`: com o Tunnel publicado, a API só atende pedidos assinados pelo Worker (mais `/health` e as rotas HMAC do plugin); sem isso, quem descobrisse o hostname do Tunnel alcançaria as rotas públicas da fila e o login local. Achado da revisão da própria PR.
 - **Não validado:** publicar o Worker, o Tunnel e o fluxo no domínio real; DNS de `mine.`/`server.`/`origem.teuzin.com.br`; WAF.
 
 ### Adicionado — painel admin e página inicial (`apps/api`)

@@ -25,6 +25,10 @@ if (saved !== null) queue.restore(saved);
 
 const hash = process.env.MC_ADMIN_PASSWORD_HASH ?? '';
 const edgeSecret = process.env.MC_EDGE_SECRET ?? '';
+if (process.env.MC_EDGE_ONLY === '1' && edgeSecret === '') {
+  console.error('MC_EDGE_ONLY=1 exige MC_EDGE_SECRET.');
+  process.exit(1);
+}
 if (edgeSecret !== '' && edgeSecret.length < MIN_EDGE_SECRET_LENGTH) {
   console.error(`MC_EDGE_SECRET precisa ter pelo menos ${MIN_EDGE_SECRET_LENGTH} caracteres.`);
   process.exit(1);
@@ -33,7 +37,9 @@ let tailer: LogTailer | undefined;
 let stats: StatsSampler | undefined;
 let admin: Parameters<typeof buildApp>[0]['admin'];
 if (hash === '') {
-  console.log('Painel desativado: defina MC_ADMIN_PASSWORD_HASH (pnpm --filter @mc-platform/api hash-password).');
+  console.log(
+    'Painel desativado: defina MC_ADMIN_PASSWORD_HASH (pnpm --filter @mc-platform/api hash-password).',
+  );
 } else if (!isValidPasswordHash(hash)) {
   console.error('MC_ADMIN_PASSWORD_HASH não está no formato esperado; o painel não será ativado.');
   process.exit(1);
@@ -51,6 +57,7 @@ if (hash === '') {
     publicDir: process.env.MC_PUBLIC_DIR ?? new URL('../public', import.meta.url).pathname,
     secureCookies: process.env.MC_ADMIN_SECURE_COOKIE === '1',
     ...(edgeSecret === '' ? {} : { edgeSecret }),
+    edgeOnly: process.env.MC_EDGE_ONLY === '1',
   };
 }
 

@@ -73,6 +73,8 @@ services:
       MC_ADMIN_SECURE_COOKIE: ${MC_ADMIN_SECURE_COOKIE:-0}
       # Segredo compartilhado com o Worker de borda (apps/edge-gateway). Vazio = só login local.
       MC_EDGE_SECRET: ${MC_EDGE_SECRET:-}
+      # 1 = com o Tunnel publicado, só pedidos assinados pelo Worker (e o plugin) são atendidos.
+      MC_EDGE_ONLY: ${MC_EDGE_ONLY:-0}
     # A porta sai SOMENTE em 127.0.0.1 (este computador). O plugin continua usando a rede
     # interna (http://api:8787). Para abrir o painel fora do computador, use Tailscale ou um
     # túnel; não troque este endereço por 0.0.0.0 (a API ainda não tem HTTPS próprio).

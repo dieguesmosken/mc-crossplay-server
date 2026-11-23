@@ -39,10 +39,7 @@ test('worker password hash accepts only the right password and sane parameters',
   assert.ok(!(await verifyPassword('', HASH)));
   assert.ok(!(await verifyPassword(PASSWORD, 'lixo')));
   assert.ok(!(await verifyPassword(PASSWORD, edgeHash(PASSWORD, 5_000))), 'too few iterations');
-  assert.ok(
-    !(await verifyPassword(PASSWORD, edgeHash(PASSWORD, 200_000))),
-    'above the cap',
-  );
+  assert.ok(!(await verifyPassword(PASSWORD, edgeHash(PASSWORD, 200_000))), 'above the cap');
   assert.ok(!(await verifyPassword('x'.repeat(300), HASH)));
 });
 
@@ -80,7 +77,7 @@ test('worker refuses to run with incomplete or weak configuration', async () => 
   assert.equal(http.status, 503);
 });
 
-async function stack() {
+async function stack(edgeOnly = false) {
   const dir = await mkdtemp(join(tmpdir(), 'edge-'));
   await writeFile(join(dir, 'index.html'), '<h1>site</h1>');
   await writeFile(join(dir, 'admin.html'), '<h1>admin</h1>');
@@ -96,6 +93,7 @@ async function stack() {
       stats: new StatsSampler({ procDir: dir }),
       publicDir: dir,
       edgeSecret: EDGE_SECRET,
+      edgeOnly,
     },
   });
   const seen = [];
@@ -260,4 +258,62 @@ test('worker login is throttled after repeated failures', async () => {
   } finally {
     await cleanup();
   }
+});
+
+test('edge-only mode hides everything from direct hits except /health and the plugin routes', async () => {
+  const { app, cleanup } = await stack(true);
+  try {
+    // Alguém que descobriu o hostname do Tunnel: nada de painel, site, fila pública ou login local.
+    for (const [method, url] of [
+      ['GET', '/'],
+      ['GET', '/admin'],
+      ['GET', '/assets/admin.js'],
+      ['POST', '/admin/api/login'],
+      ['GET', '/admin/api/snapshot'],
+      ['POST', '/v1/queue/join'],
+      ['GET', '/v1/queue/status?uuid=x'],
+    ])
+      assert.equal((await app.inject({ method, url })).statusCode, 404, `${method} ${url}`);
+
+    assert.equal((await app.inject({ url: '/health' })).statusCode, 200);
+    // O plugin continua com a autenticação HMAC dele (401, não 404).
+    const heartbeat = await app.inject({
+      method: 'POST',
+      url: '/v1/server/heartbeat',
+      payload: {},
+    });
+    assert.equal(heartbeat.statusCode, 401);
+
+    // Com a assinatura do Worker, o site e o painel respondem.
+    const ts = String(Date.now());
+    const signed = (url) => ({
+      url,
+      headers: {
+        'x-edge-ts': ts,
+        'x-edge-sig': edgeSignature(EDGE_SECRET, ts, 'GET', url),
+      },
+    });
+    assert.equal((await app.inject(signed('/'))).statusCode, 200);
+    assert.equal((await app.inject(signed('/admin/api/snapshot'))).statusCode, 200);
+  } finally {
+    await cleanup();
+  }
+});
+
+test('edge-only mode refuses to start without the edge secret', () => {
+  assert.throws(
+    () =>
+      buildApp({
+        secret: rand(),
+        queue: new PlayerQueue(),
+        admin: {
+          passwordHash: hashPassword(rand()),
+          tailer: new LogTailer({ file: '/nao/existe' }),
+          stats: new StatsSampler({ procDir: '/nao/existe' }),
+          publicDir: tmpdir(),
+          edgeOnly: true,
+        },
+      }),
+    /edgeSecret/,
+  );
 });

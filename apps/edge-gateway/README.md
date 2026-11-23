@@ -23,7 +23,7 @@ Trocar a senha (outro hash) invalida todas as sessões. Sem as quatro variáveis
 ## Passo a passo
 
 1. **Tunnel (em casa):** no painel do Cloudflare, Zero Trust, Networks, Tunnels: crie um Tunnel e aponte o hostname `origem.teuzin.com.br` para `http://api:8787` (o `cloudflared` precisa estar na rede `minecraft_net`, ou aponte para `http://127.0.0.1:8787` se rodar no host). Guarde o token só no seu `.env`/no `cloudflared`; ele não vai para o Git.
-2. **Painel:** no `.env` de casa, `MC_EDGE_SECRET=<o mesmo EDGE_SECRET>` e `docker compose --profile api up -d --build`.
+2. **Painel:** no `.env` de casa, `MC_EDGE_SECRET=<o mesmo EDGE_SECRET>`, `MC_EDGE_ONLY=1` (sem isso, quem descobrir o hostname do Tunnel alcança as rotas públicas da fila e o login local) e `docker compose --profile api up -d --build`.
 3. **Worker:** publique `src/worker.js` (colar no editor do painel, ou `npx wrangler deploy` nesta pasta) e cadastre as variáveis acima.
 4. **Rota:** Workers Routes ou domínio personalizado: `mine.teuzin.com.br/*` para este Worker.
 5. **WAF:** crie uma regra de limite de taxa em `mine.teuzin.com.br/admin/api/login` (por exemplo, 5 requisições por minuto por IP). O freio de tentativas do Worker é por instância e não substitui isso.
