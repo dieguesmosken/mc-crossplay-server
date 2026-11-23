@@ -184,4 +184,15 @@ Autor: Claude. Branch: `feat/docker-api-service`, a partir de `docs/lan-test-fin
 
 ---
 
+## 2026-11-23T01:06:00-03:00 [America/Sao_Paulo] — Painel admin e página inicial
+
+Autor: Claude. Branch: `feat/web-admin`, a partir de `feat/docker-api-service` (PR com base em `release/plataforma-para-main`, #34).
+
+- **Criados:** `apps/api/src/admin/*`, `apps/api/public/*`, `tests/admin.test.mjs`. **Alterados:** `apps/api/src/{app,server}.ts`, `apps/api/package.json`, compose, `.env.example`, README do Docker, `tests/entrypoint.test.mjs`.
+- **Decisões do usuário:** site em `mine.teuzin.com.br`; entrada no jogo em `server.teuzin.com.br`; senha só como hash no `.env`; autenticação possivelmente no Cloudflare Workers (a decidir).
+- **Testado:** `pnpm build`, `node --test` 64/64 (Node 22), mutação em login e sessão.
+- **Não validado:** visual no navegador, `docker compose up` com o painel, log de Paper real, acesso externo.
+
+---
+
 *Este documento será mantido como canal de comunicação oficial entre a equipe de desenvolvimento e o modelo ChatGPT.*

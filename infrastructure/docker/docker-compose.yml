@@ -68,10 +68,18 @@ services:
     environment:
       # Vazio ou com menos de 16 caracteres: a API recusa subir e explica no log.
       MC_API_SECRET: ${MC_API_SECRET:-}
-    # SEM "ports": a API fica só na rede interna (minecraft_net). O site da fila usará
-    # a API por outro caminho, definido na etapa do site.
+      # Painel admin e site: só ligam com um hash válido (veja README, "Painel admin").
+      MC_ADMIN_PASSWORD_HASH: ${MC_ADMIN_PASSWORD_HASH:-}
+      MC_ADMIN_SECURE_COOKIE: ${MC_ADMIN_SECURE_COOKIE:-0}
+    # A porta sai SOMENTE em 127.0.0.1 (este computador). O plugin continua usando a rede
+    # interna (http://api:8787). Para abrir o painel fora do computador, use Tailscale ou um
+    # túnel; não troque este endereço por 0.0.0.0 (a API ainda não tem HTTPS próprio).
+    ports:
+      - "127.0.0.1:${MC_ADMIN_PORT:-8787}:8787"
     volumes:
       - api_data:/data
+      # Logs do Paper, somente leitura: de onde o painel tira "quem entrou" e "o que aconteceu".
+      - ./data/logs:/minecraft-logs:ro
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8787/health"]
       interval: 15s

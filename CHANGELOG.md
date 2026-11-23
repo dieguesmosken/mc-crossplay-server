@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Adicionado — painel admin e página inicial (`apps/api`)
+- `apps/api/src/admin/`: parser de logs do Paper (entrada, saída, chat, conquistas, mortes, comandos, alertas), leitura incremental do `latest.log` (sobrevive a reinício do servidor), métricas de `/proc` (CPU, RAM, carga, uptime) e `statfs` (disco), login com scrypt, sessão por cookie assinado e limitador de tentativas.
+- Rotas: `/` (site), `/admin`, `/admin/api/{login,logout,me,snapshot,stream}` (SSE). Só existem com `MC_ADMIN_PASSWORD_HASH` válido; CSP sem inline, `nosniff`, `no-store`.
+- `apps/api/public/`: página inicial (como entrar: `server.teuzin.com.br`) e painel com visual próprio (vagas, jogadores, anéis de uso, linha do tempo com filtros).
+- Compose: porta da API só em `127.0.0.1:${MC_ADMIN_PORT:-8787}`, logs em `./data/logs:/minecraft-logs:ro`; teste do compose atualizado. `.env.example` e README ganharam a configuração.
+- Testes: `tests/admin.test.mjs` (9 testes); verificação por mutação (sem checagem de senha ou de sessão os testes quebram). Total 64/64.
+- **Não validado:** a tela no navegador (só o JS tem verificação de sintaxe), `docker build`/`compose up` com o painel, leitura do log de um Paper real, acesso por Tailscale/túnel. Endereços `mine.`/`server.teuzin.com.br` ainda sem DNS.
+
 ### Adicionado (issue #25 etapa 5) — API da fila no Docker
 - `infrastructure/docker/api/Dockerfile` (Node 26.13.1 Alpine, pnpm 12.21.0, `--frozen-lockfile`, usuário `node`) e `.dockerignore` na raiz.
 - `docker-compose.yml`: serviço `api` no perfil `api` (`docker compose --profile api up -d`), **sem porta publicada no host**, com volume nomeado `api_data` e healthcheck em `/health`. `MC_API_SECRET` chega à API e ao `papermc` pelo `.env`; o `.env.example` mantém a variável vazia.
