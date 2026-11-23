@@ -58,19 +58,40 @@ No celular: **Jogar → Servidores → Adicionar servidor**, endereço = IP do c
 - **Nunca encaminhe estas portas no roteador.** Exposição à internet é a Fase 6 e exige análise própria.
 - Não use a variável para expor a API da fila nem qualquer console: elas não passam por aqui e continuam em loopback.
 
-**Bedrock 26.60 ou mais novo (NetherNet).** O Bedrock 26.60 deixa de conectar por RakNet, e o NetherNet usa TCP para sinalização e UDP para o jogo, ambos na `19132` ([Geyser: Preparing for NetherNet](https://geysermc.org/blog/preparing-for-nethernet)). Publicar `19132/tcp` é necessário, mas **não liga o NetherNet**: o RakNet continua sendo o padrão do Geyser. A mesma página cita a propriedade de sistema `-DgeyserTransport=nethernet`, que dá para passar por `MC_JAVA_OPTS` (por exemplo `MC_JAVA_OPTS=-DgeyserTransport=nethernet`). Isso **não foi validado neste projeto** (issue #23).
+**Bedrock 26.60 ou mais novo (NetherNet).** O Bedrock 26.60 deixa de conectar por RakNet, e o NetherNet usa TCP para sinalização e UDP para o jogo, ambos na `19132` ([Geyser: Preparing for NetherNet](https://geysermc.org/blog/preparing-for-nethernet)). Por isso o compose publica `19132/tcp` e `19132/udp`. Na build do Geyser que o entrypoint baixou em 2026-11-22 (`2.12.1-b1306`), o `config.yml` já vem com `transport: nethernet` e `signaling.mode: builtin`, e o log mostra `Built-in signaling started on http://0.0.0.0:19132`. Não foi preciso passar `-DgeyserTransport=nethernet`. Se a sua build for mais antiga e o log avisar que o NetherNet não está ligado, atualize o Geyser (veja abaixo).
 
-**Autenticação do Bedrock.** Com Geyser e Floodgate no mesmo servidor Paper, o guia do Floodgate manda definir `auth-type: floodgate` no config do Geyser ([Floodgate: setup](https://geysermc.org/wiki/floodgate/setup/)). Confira em `data/plugins/Geyser-Spigot/config.yml`.
+**Autenticação do Bedrock.** Com Geyser e Floodgate no mesmo servidor Paper, o guia do Floodgate manda definir `auth-type: floodgate` no config do Geyser ([Floodgate: setup](https://geysermc.org/wiki/floodgate/setup/)). Confira com `grep -n "auth-type" data/plugins/Geyser-Spigot/config.yml`. Com `online`, o jogador Bedrock precisaria de uma conta Java.
 
-**Matriz de testes (issue #12)** — nenhuma linha foi validada ainda:
+**Matriz de testes (issue #12).** Validada em 2026-11-22 num Linux (Pop!_OS 24.04) com Paper 26.3 build 255, Geyser `2.12.1-b1306` e Floodgate `2.2.5`, e um Galaxy A17 (Android) na mesma rede Wi-Fi:
 
-| Caso                                    | Validado? |
-| --------------------------------------- | --------- |
-| Java local (`127.0.0.1`)                | não       |
-| Java na LAN                             | não       |
-| Bedrock local                           | não       |
-| Bedrock na LAN (RakNet, antes da 26.60) | não       |
-| Bedrock na LAN (NetherNet, 26.60+)      | não       |
+| Caso                                    | Validado?                                                                                                                                                                 |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Java local (`127.0.0.1`)                | não                                                                                                                                                                       |
+| Java na LAN                             | não                                                                                                                                                                       |
+| Bedrock local                           | não                                                                                                                                                                       |
+| Bedrock na LAN (RakNet, antes da 26.60) | não (o RakNet deixa de valer na 26.60)                                                                                                                                    |
+| Bedrock na LAN (NetherNet, 26.60)       | sim: o celular (release 26.60, endereço `IP-da-LAN:19132`) entrou no mundo como `.TeuzinYTBR`, depois de resolver a whitelist (veja abaixo). Outras versões: não testadas |
+
+O teste não isolou o ajuste de `advertise-addresses` (veja abaixo): não sabemos se ele foi necessário.
+
+### Solução de problemas (achados do teste na LAN)
+
+- **`Outdated Geyser proxy! This server supports the following Bedrock versions: …`** O Geyser só aceita as versões Bedrock listadas na própria mensagem (nesta build, 26.40 a 26.65). Um **beta** mais novo (o celular de teste estava na 26.70) é recusado. Saia do programa beta na Google Play e reinstale, ou atualize o Geyser. O entrypoint só baixa o Geyser se `data/plugins/geyser.jar` não existir, então ele **não se atualiza sozinho**. Para pegar a build mais recente (e seguir o `latest` do download, que não é fixado):
+
+  ```sh
+  cd infrastructure/docker
+  docker compose down
+  mv data/plugins/geyser.jar data/plugins/geyser.jar.bak   # guarda a versão atual
+  MC_BIND_ADDRESS=0.0.0.0 docker compose up -d             # sem a variável, as portas voltam a 127.0.0.1
+  ```
+
+  Isso não garante que a build nova aceite a sua versão do Bedrock: confira a lista na mensagem de erro.
+
+- **Entrada recusada com `You are not whitelisted on this server!`.** O `server.properties` do teste tinha `white-list=true`. O jogador Bedrock aparece com prefixo `.` (Floodgate), por exemplo `.TeuzinYTBR`, e precisa estar na whitelist. No console do servidor (próximo item), o Floodgate tem o comando `fwhitelist add <gamertag>`; **não foi testado aqui**. Para um teste rápido, `white-list=false` no `data/server.properties` e `docker compose restart papermc` funcionam, mas com as portas na LAN qualquer aparelho da rede entra enquanto a whitelist estiver desligada. Restaure o arquivo ao terminar.
+- **Console do servidor.** O compose mantém `stdin_open` e `tty` abertos. Use `docker attach minecraft-paper` para digitar comandos e saia com **Ctrl+P e Ctrl+Q**. Ctrl+C no `attach` envia o sinal ao servidor e o **para**. Essa configuração não foi exercitada num container real (só o `docker compose config`).
+- **`permission denied while trying to connect to the Docker daemon socket`.** O usuário não está no grupo `docker`. Use `sudo docker compose …` ou `sudo usermod -aG docker $USER` e abra uma nova sessão do terminal.
+- **`advertise-addresses` (hipótese não confirmada).** O Geyser anuncia ao celular os endereços da própria máquina e o IP público achado por STUN. Dentro do Docker, a "máquina" é o container, e o IP público do STUN usa outra porta que a `19132` (o log mostra `…:57936`). Em LAN, a `config.yml` aceita listar um endereço em `bedrock.signaling.advertise-addresses` (por exemplo `["IP-da-LAN"]`). **Não confirmamos que isso seja necessário**: o beta chegou ao servidor com a config padrão. Se a conexão falhar na LAN, é um ajuste a testar, e o IP fixo não deve ficar na configuração depois.
+- **Avisos que não impedem a entrada:** `Send failed, errno=101` e o STUN com `cannot reach […]` (rede sem rota IPv6); `Unable to resolve the skin api … api.geysermc.org` (só afeta skins; o container não resolveu o endereço); `*** Currently you are 3 builds behind ***` (o projeto fixa o Paper build 255). O log também avisa que o servidor roda como `root` dentro do container; isso não foi alterado aqui. O relógio dos logs do container está em UTC.
 
 ### `minecraft/`
 

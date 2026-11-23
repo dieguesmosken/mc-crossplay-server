@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Documentado (issues #12 e #23) — achados do teste do Bedrock na LAN
+- Teste real em 2026-11-22: Linux (Pop!_OS 24.04), Paper 26.3 build 255, Geyser `2.12.1-b1306`, Floodgate `2.2.5`, celular Galaxy A17 (Bedrock release 26.60) na mesma rede. O celular entrou no mundo como `.TeuzinYTBR` por `IP-da-LAN:19132` (NetherNet), com `MC_BIND_ADDRESS=0.0.0.0`.
+- `infrastructure/docker/README.md`: matriz da #12 atualizada (só a linha "Bedrock na LAN (NetherNet)" foi validada) e nova seção de solução de problemas: versão Bedrock fora da lista do Geyser (`Outdated Geyser proxy!`, o beta 26.70 foi recusado), Geyser que não se atualiza sozinho (`data/plugins/geyser.jar`), whitelist, console do servidor, permissão no socket do Docker, `advertise-addresses` (hipótese, não confirmada) e avisos inofensivos do log.
+- `docker-compose.yml`: `stdin_open: true` e `tty: true` para permitir `docker attach minecraft-paper` (sair com Ctrl+P e Ctrl+Q). Teste novo em `tests/entrypoint.test.mjs`.
+- **Não validado:** Java local e na LAN, Bedrock local, `fwhitelist add` no console, `docker attach` num container real, qualquer versão do Bedrock fora da 26.60.
+
 ### Adicionado (issues #12 e #23) — porta configurável para testar o Bedrock na LAN
 - `docker-compose.yml`: as portas passam a ser publicadas em `${MC_BIND_ADDRESS:-127.0.0.1}`. O padrão continua sendo loopback (só o próprio computador). Também publica `19132/tcp`, usada na sinalização do NetherNet (Bedrock 26.60+), além de `25565/tcp` e `19132/udp`.
 - `.env.example`, `infrastructure/docker/README.md` e `docs/DEVELOPMENT_SETUP.md`: variável documentada, com o passo a passo para o celular, o aviso de que **o Docker ignora o `ufw`** (qualquer valor diferente de `127.0.0.1` abre as portas para toda a LAN, com a whitelist do Paper desligada), a recomendação de usar o IP da LAN em vez de `0.0.0.0` e a matriz de testes da #12 (todas as linhas ainda "não validado").

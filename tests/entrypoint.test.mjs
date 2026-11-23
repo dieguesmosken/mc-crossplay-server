@@ -191,6 +191,16 @@ test('docker-compose keeps a single data volume, no restart loop and a configura
   assert.match(compose, /MC_JAVA_HEAP: \$\{MC_JAVA_HEAP:-2G\}/);
 });
 
+test('docker-compose keeps stdin and tty open so the server console can be attached', async () => {
+  const compose = await readFile(
+    new URL('../infrastructure/docker/docker-compose.yml', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(compose, /^\s+stdin_open: true$/m);
+  assert.match(compose, /^\s+tty: true$/m);
+});
+
 test('docker-compose publishes Java and Bedrock ports on MC_BIND_ADDRESS, loopback by default', async () => {
   const compose = await readFile(
     new URL('../infrastructure/docker/docker-compose.yml', import.meta.url),

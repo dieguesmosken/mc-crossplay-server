@@ -25,6 +25,10 @@ services:
       dockerfile: Dockerfile
     container_name: minecraft-paper
     working_dir: /server
+    # stdin e tty abertos: permitem digitar comandos no console do servidor com
+    # "docker attach minecraft-paper" (sair sem parar o servidor: Ctrl+P e Ctrl+Q).
+    stdin_open: true
+    tty: true
     # Sem restart automático: o início/parada é decisão do usuário/Controller.
     # Com "unless-stopped", a saída com código 1 por EULA não aceita viraria loop infinito.
     restart: "no"

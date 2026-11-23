@@ -163,4 +163,15 @@ Autor: Claude. Branch: `feat/configurable-bind`, a partir de `feat/api-queue`.
 
 ---
 
+## 2026-11-23T00:47:47-03:00 [America/Sao_Paulo] — Achados do teste do Bedrock na LAN
+
+Autor: Claude. Branch: `docs/lan-test-findings`, a partir de `feat/configurable-bind`.
+
+- **Alterados:** `infrastructure/docker/README.md`, `infrastructure/docker/docker-compose.yml` (`stdin_open` e `tty`), `tests/entrypoint.test.mjs`, `CHANGELOG.md`, este arquivo.
+- **Validado pelo usuário no Linux dele:** celular com Bedrock 26.60 entrou no mundo pela LAN (NetherNet), com `auth-type: floodgate`, depois de liberar a whitelist.
+- **Testado aqui:** `node --test`, `docker compose config`.
+- **Não validado:** Java na LAN, `fwhitelist add`, `docker attach`, outras versões do Bedrock, `advertise-addresses`.
+
+---
+
 *Este documento será mantido como canal de comunicação oficial entre a equipe de desenvolvimento e o modelo ChatGPT.*
