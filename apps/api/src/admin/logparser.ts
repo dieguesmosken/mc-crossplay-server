@@ -27,7 +27,8 @@ export interface LogEntry {
 
 export type ServerState = 'unknown' | 'ready' | 'stopping';
 
-const LINE = /^\[(\d{2}:\d{2}:\d{2}) ([A-Z]+)\]: (.*)$/;
+// O console do Paper escreve "[10:00:00 INFO]: msg"; o latest.log escreve "[10:00:00] [Server thread/INFO]: msg".
+const LINE = /^\[(\d{2}:\d{2}:\d{2})(?: ([A-Z]+)|\] \[[^\]]*\/([A-Z]+))\]: (.*)$/;
 // eslint-disable-next-line no-control-regex
 const ANSI = /\u001b\[[0-9;]*[A-Za-z]/g;
 const NAME = String.raw`([A-Za-z0-9_.]{1,32})`;
@@ -93,7 +94,14 @@ export class LogParser {
       }
       return null;
     }
-    const [, clock, level, message] = match as unknown as [string, string, string, string];
+    const [, clock, consoleLevel, fileLevel, message] = match as unknown as [
+      string,
+      string,
+      string | undefined,
+      string | undefined,
+      string,
+    ];
+    const level = consoleLevel ?? fileLevel ?? 'INFO';
     const entry = this.#classify(clock, level, message);
     this.#last = entry;
     return entry;
