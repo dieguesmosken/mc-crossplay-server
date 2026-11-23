@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Admin · Minecraft do Teuzin</title>
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/assets/admin.css" />
+  </head>
+  <body>
+    <section id="login" class="login" hidden>
+      <form id="login-form" class="login-card" autocomplete="off">
+        <h1>Admin</h1>
+        <label for="password">Senha</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+        />
+        <button type="submit">Entrar</button>
+        <p id="login-error" class="error" role="alert" hidden></p>
+      </form>
+      <a class="back" href="/">Voltar ao site</a>
+    </section>
+
+    <div id="panel" hidden>
+      <header class="top">
+        <div>
+          <h1>Painel do servidor</h1>
+          <p id="server-state" class="state">
+            <span class="dot"></span><span id="server-state-text">Conectando…</span>
+          </p>
+        </div>
+        <div class="top-actions">
+          <span id="link-state" class="link-state">sem conexão</span>
+          <button id="logout" type="button" class="ghost">Sair</button>
+        </div>
+      </header>
+
+      <main class="grid">
+        <section class="card slots-card" aria-labelledby="h-slots">
+          <h2 id="h-slots">Vagas</h2>
+          <div id="slots" class="slots" role="img" aria-label="Vagas do servidor"></div>
+          <p id="slots-text" class="muted"></p>
+        </section>
+
+        <section class="card" aria-labelledby="h-online">
+          <h2 id="h-online">No mundo agora</h2>
+          <ul id="online" class="players"></ul>
+          <p id="online-empty" class="muted">Ninguém no mundo.</p>
+        </section>
+
+        <section class="card machine" aria-labelledby="h-machine">
+          <h2 id="h-machine">Computador</h2>
+          <div class="rings">
+            <figure class="ring" id="ring-cpu">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="track" cx="60" cy="60" r="52" />
+                <circle class="value" cx="60" cy="60" r="52" transform="rotate(-90 60 60)" />
+              </svg>
+              <figcaption><strong>--</strong><span>CPU</span></figcaption>
+            </figure>
+            <figure class="ring" id="ring-mem">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="track" cx="60" cy="60" r="52" />
+                <circle class="value" cx="60" cy="60" r="52" transform="rotate(-90 60 60)" />
+              </svg>
+              <figcaption><strong>--</strong><span>RAM</span></figcaption>
+            </figure>
+            <figure class="ring" id="ring-disk">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="track" cx="60" cy="60" r="52" />
+                <circle class="value" cx="60" cy="60" r="52" transform="rotate(-90 60 60)" />
+              </svg>
+              <figcaption><strong>--</strong><span>Disco</span></figcaption>
+            </figure>
+          </div>
+          <svg
+            id="spark"
+            class="spark"
+            viewBox="0 0 240 50"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <polyline points="" />
+          </svg>
+          <dl class="facts">
+            <div>
+              <dt>RAM</dt>
+              <dd id="f-mem">--</dd>
+            </div>
+            <div>
+              <dt>Disco</dt>
+              <dd id="f-disk">--</dd>
+            </div>
+            <div>
+              <dt>Carga (1/5/15 min)</dt>
+              <dd id="f-load">--</dd>
+            </div>
+            <div>
+              <dt>Ligado há</dt>
+              <dd id="f-up">--</dd>
+            </div>
+            <div>
+              <dt>Núcleos</dt>
+              <dd id="f-cores">--</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="card timeline-card" aria-labelledby="h-log">
+          <div class="timeline-head">
+            <h2 id="h-log">O que está acontecendo</h2>
+            <div id="filters" class="filters" role="group" aria-label="Filtrar eventos">
+              <button type="button" data-filter="all" aria-pressed="true">Tudo</button>
+              <button type="button" data-filter="people" aria-pressed="false">
+                Entradas e saídas
+              </button>
+              <button type="button" data-filter="chat" aria-pressed="false">Chat</button>
+              <button type="button" data-filter="play" aria-pressed="false">
+                Conquistas e mortes
+              </button>
+              <button type="button" data-filter="alert" aria-pressed="false">Alertas</button>
+            </div>
+          </div>
+          <p id="log-missing" class="notice" hidden>
+            O arquivo de log do Paper não foi encontrado. Confira o volume de logs no compose.
+          </p>
+          <ol id="timeline" class="timeline"></ol>
+          <p id="timeline-empty" class="muted">Nenhum evento ainda.</p>
+        </section>
+      </main>
+    </div>
+    <script src="/assets/admin.js" type="module"></script>
+  </body>
+</html>

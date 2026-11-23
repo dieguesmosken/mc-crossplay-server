@@ -233,7 +233,7 @@ test('.env.example keeps MC_BIND_ADDRESS on loopback and warns about the LAN exp
   assert.match(example, /Docker ignora as regras do ufw/);
 });
 
-test('docker-compose runs the queue API only under the "api" profile, without published ports', async () => {
+test('docker-compose runs the queue API only under the "api" profile, published only on loopback', async () => {
   const compose = await readFile(
     new URL('../infrastructure/docker/docker-compose.yml', import.meta.url),
     'utf8',
@@ -244,7 +244,13 @@ test('docker-compose runs the queue API only under the "api" profile, without pu
   assert.match(apiBlock, /profiles: \["api"\]/);
   assert.match(apiBlock, /MC_API_SECRET: \$\{MC_API_SECRET:-\}/);
   assert.match(apiBlock, /api_data:\/data/);
-  assert.doesNotMatch(apiBlock, /^\s+ports:/m, 'the API must not publish ports on the host');
+  // Painel: a única porta publicada da API é em 127.0.0.1, nunca na LAN.
+  const apiPorts = apiBlock.match(/^\s+- "[^"]*:\d+"\s*$/gm) ?? [];
+  assert.equal(apiPorts.length, 1);
+  assert.match(apiPorts[0], /- "127\.0\.0\.1:\$\{MC_ADMIN_PORT:-8787\}:8787"/);
+  // Logs do Paper entram somente leitura; o hash da senha vem do ambiente, nunca escrito.
+  assert.match(apiBlock, /\.\/data\/logs:\/minecraft-logs:ro/);
+  assert.match(apiBlock, /MC_ADMIN_PASSWORD_HASH: \$\{MC_ADMIN_PASSWORD_HASH:-\}/);
   assert.doesNotMatch(
     compose,
     /MC_API_SECRET: [^$\s]/,

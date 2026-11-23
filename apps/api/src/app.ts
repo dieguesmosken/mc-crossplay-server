@@ -10,6 +10,7 @@ import {
   verifyRequest,
 } from '@mc-platform/shared';
 
+import { registerAdmin, type AdminOptions } from './admin/routes.js';
 import type { QueueStore } from './store.js';
 
 declare module 'fastify' {
@@ -25,6 +26,8 @@ export interface AppOptions {
   readonly store?: QueueStore;
   readonly now?: () => number;
   readonly toleranceMs?: number;
+  /** Painel e site. Sem isto, só as rotas da API existem. */
+  readonly admin?: Omit<AdminOptions, 'apiSecret' | 'queue'>;
 }
 
 function header(request: FastifyRequest, name: string): string | undefined {
@@ -132,6 +135,9 @@ export function buildApp(options: AppOptions): FastifyInstance {
       return badRequest(reply, 'uuid inválido');
     }
   });
+
+  if (options.admin !== undefined)
+    registerAdmin(app, { ...options.admin, apiSecret: options.secret, queue });
 
   return app;
 }
