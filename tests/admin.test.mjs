@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { randomBytes } from 'node:crypto';
 import { appendFile, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -27,8 +28,10 @@ import {
   StatsSampler,
 } from '../apps/api/dist/admin/stats.js';
 
-const PASSWORD = 'uma senha bem comprida 123';
-const SECRET = 'segredo-de-teste-com-mais-de-16';
+// Valores aleatórios por execução: nenhum segredo literal no repositório.
+const PASSWORD = randomBytes(18).toString('hex');
+const WRONG = randomBytes(18).toString('hex');
+const SECRET = randomBytes(24).toString('hex');
 
 test('password hash verifies the right password and rejects the others', () => {
   const hash = hashPassword(PASSWORD);
@@ -202,7 +205,7 @@ test('admin pages are public but the panel API needs the password', async () => 
     const bad = await app.inject({
       method: 'POST',
       url: '/admin/api/login',
-      payload: { password: 'errada errada errada' },
+      payload: { password: WRONG },
     });
     assert.equal(bad.statusCode, 401);
     assert.equal(bad.headers['set-cookie'], undefined);
@@ -243,7 +246,7 @@ test('login is rate limited per client', async () => {
       app.inject({
         method: 'POST',
         url: '/admin/api/login',
-        payload: { password: 'nao-e-essa-123' },
+        payload: { password: WRONG },
       });
     for (let i = 0; i < 5; i += 1) assert.equal((await attempt()).statusCode, 401);
     const blocked = await attempt();
