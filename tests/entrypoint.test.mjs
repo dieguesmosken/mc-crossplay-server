@@ -251,6 +251,8 @@ test('docker-compose runs the queue API only under the "api" profile, published 
   // Logs do Paper entram somente leitura; o hash da senha vem do ambiente, nunca escrito.
   assert.match(apiBlock, /\.\/data\/logs:\/minecraft-logs:ro/);
   assert.match(apiBlock, /MC_ADMIN_PASSWORD_HASH: \$\{MC_ADMIN_PASSWORD_HASH:-\}/);
+  assert.match(apiBlock, /MC_EDGE_SECRET: \$\{MC_EDGE_SECRET:-\}/);
+  assert.match(apiBlock, /MC_EDGE_ONLY: \$\{MC_EDGE_ONLY:-0\}/);
   assert.doesNotMatch(
     compose,
     /MC_API_SECRET: [^$\s]/,

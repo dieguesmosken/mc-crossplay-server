@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Adicionado — Worker de borda para o login do admin (`apps/edge-gateway`)
+- Worker do Cloudflare (JavaScript, sem dependências): senha PBKDF2 (100000 iterações, limite do runtime), sessão em cookie `__Host-` assinado (12 h), freio de tentativas por instância e proxy para o painel com assinatura HMAC por pedido (método, caminho, relógio de 60 s). Só `/`, `/admin`, `/assets/*` e `/admin/api/*` passam; rotas do plugin e `/health` não.
+- API: `MC_EDGE_SECRET` (mínimo 32 caracteres) faz o painel aceitar pedidos assinados pelo Worker como sessão; sem ele, só o login local. `apps/api/src/admin/edge.ts`.
+- `scripts/hash-password.mjs` (senha sem eco), `wrangler.toml` (sem segredos), README com Tunnel, variáveis, rota e regra de WAF. Compose e `.env.example` ganharam `MC_EDGE_SECRET`.
+- Testes: `tests/edge.test.mjs` (7), com o Worker falando com a API de verdade; mutação (sem auth, sem lista de caminhos, sem limite de iterações os testes quebram). Total 71/71.
+- `MC_EDGE_ONLY=1`: com o Tunnel publicado, a API só atende pedidos assinados pelo Worker (mais `/health` e as rotas HMAC do plugin); sem isso, quem descobrisse o hostname do Tunnel alcançaria as rotas públicas da fila e o login local. Achado da revisão da própria PR.
+- **Não validado:** publicar o Worker, o Tunnel e o fluxo no domínio real; DNS de `mine.`/`server.`/`origem.teuzin.com.br`; WAF.
+
 ### Adicionado — painel admin e página inicial (`apps/api`)
 - `apps/api/src/admin/`: parser de logs do Paper (entrada, saída, chat, conquistas, mortes, comandos, alertas), leitura incremental do `latest.log` (sobrevive a reinício do servidor), métricas de `/proc` (CPU, RAM, carga, uptime) e `statfs` (disco), login com scrypt, sessão por cookie assinado e limitador de tentativas.
 - Rotas: `/` (site), `/admin`, `/admin/api/{login,logout,me,snapshot,stream}` (SSE). Só existem com `MC_ADMIN_PASSWORD_HASH` válido; CSP sem inline, `nosniff`, `no-store`.

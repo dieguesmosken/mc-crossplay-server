@@ -213,4 +213,15 @@ Autor: Claude. Branch: `feat/web-admin`, a partir de `feat/docker-api-service` (
 
 ---
 
+## 2026-11-23T01:30:00-03:00 [America/Sao_Paulo] — Worker de borda para o login do admin
+
+Autor: Claude. Branch: `feat/edge-gateway`, a partir de `feat/web-admin` (#35).
+
+- **Decisão do usuário:** autenticação do admin no Cloudflare Workers; permitiu controlar o painel do Cloudflare pelo navegador embutido.
+- **Criados:** `apps/edge-gateway/*` (sem `package.json`, para não mexer no lockfile), `apps/api/src/admin/edge.ts`, `tests/edge.test.mjs`. **Alterados:** `routes.ts`, `server.ts`, compose, `.env.example`.
+- **Testado:** `node --test` 71/71 (Node 22); mutação em auth, lista de caminhos e limite de iterações.
+- **Não validado:** publicação do Worker, Tunnel, domínio real, WAF.
+
+---
+
 *Este documento será mantido como canal de comunicação oficial entre a equipe de desenvolvimento e o modelo ChatGPT.*

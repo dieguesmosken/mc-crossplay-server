@@ -1,0 +1,9 @@
+# Publicação opcional pela linha de comando (npx wrangler deploy). Os segredos NÃO ficam aqui:
+#   npx wrangler secret put ADMIN_PASSWORD_HASH  (e SESSION_SECRET, EDGE_SECRET)
+name = "mc-edge-gateway"
+main = "src/worker.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+# Endereço público do Cloudflare Tunnel que aponta para o painel (http://api:8787).
+ORIGIN_URL = "https://origem.teuzin.com.br"
